@@ -1,0 +1,11 @@
+[project]
+name = "vibe-shop"
+version = "0.1.0"
+description = "FastAPI backend for product listing"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "pytest",
+    "httpx"
+]

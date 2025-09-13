@@ -1,0 +1,14 @@
+[
+  {
+    "name": "Acoustic Guitar",
+    "price": 15000,
+    "description": "A warm and resonant acoustic guitar.",
+    "images": ["/images/guitar.svg"]
+  },
+  {
+    "name": "Electric Keyboard",
+    "price": 23000,
+    "description": "An 88-key electric keyboard with multiple voices.",
+    "images": ["/images/keyboard.svg"]
+  }
+]

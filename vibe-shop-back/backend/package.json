@@ -1,0 +1,9 @@
+{
+  "name": "vibe-shop-back",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "python -m uvicorn main:app --host 127.0.0.1 --port 8000"
+  }
+}
+

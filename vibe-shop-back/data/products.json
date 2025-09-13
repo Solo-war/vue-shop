@@ -1,0 +1,23 @@
+[
+  {
+    "id": 1,
+    "title": "T-Shirt",
+    "price": 19.99,
+    "image": "/images/tshirt.jpg",
+    "description": "Comfortable cotton tee"
+  },
+  {
+    "id": 2,
+    "title": "Cap",
+    "price": 9.99,
+    "image": "/images/cap.jpg",
+    "description": "Stylish cap"
+  },
+  {
+    "id": 3,
+    "title": "Hoodie",
+    "price": 39.99,
+    "image": "/images/hoodie.jpg",
+    "description": "Warm hoodie"
+  }
+]
