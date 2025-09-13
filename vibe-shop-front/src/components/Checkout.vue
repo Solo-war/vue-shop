@@ -1,72 +1,103 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { cart, clearCart } from '../cart.js'
 
 const router = useRouter()
 const address = ref('')
 const suggestions = ref([])
-// Разрешаем отправку только если выбран адрес из подсказок DaData
-const isAddressValid = ref(false)
+const selectedSuggestion = ref(null)
+
+// Адрес считается валидным только после выбора из подсказок (c домом)
+const isAddressValid = computed(() => {
+  const s = selectedSuggestion.value
+  return Boolean(s && s.value === address.value && s?.data?.house)
+})
+
 const delivery = ref(null)
 const orderId = ref(null)
 const amount = ref(null)
 const error = ref(null)
 
-// 👉 здесь вставь свой API-ключ от Dadata
-const DADATA_TOKEN = "8973b8a331798cdfc97a2af042393f8c65c1a5a7"
+// Подсказки DaData
+const DADATA_TOKEN = '8973b8a331798cdfc97a2af042393f8c65c1a5a7'
 
-// Загружаем подсказки при вводе
 async function fetchSuggestions(query) {
-  if (!query || query.length < 3) { 
+  if (!query || query.length < 3) {
     suggestions.value = []
-    isAddressValid.value = false
     return
   }
-
   try {
-    const res = await fetch("https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address", {
-      method: "POST",
+    const res = await fetch('https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-        "Authorization": "Token " + DADATA_TOKEN,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': 'Token ' + DADATA_TOKEN,
       },
       body: JSON.stringify({ query, count: 5 })
     })
-
-    if (!res.ok) throw new Error("Ошибка подсказок")
-
+    if (!res.ok) throw new Error('Failed to fetch suggestions')
     const data = await res.json()
-    suggestions.value = data.suggestions.map(s => s.value)
-    if (!suggestions.value.includes(address.value)) {
-      isAddressValid.value = false
-    }
+    suggestions.value = data.suggestions
   } catch (e) {
     console.error(e)
     suggestions.value = []
-    isAddressValid.value = false
   }
 }
 
-// Отправка заказа
+// Примитивная оценка срока доставки (локально)
+const NOVOSIB = { lat: 55.0084, lon: 82.9357 }
+function toRad(v) { return v * Math.PI / 180 }
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 6371
+  const dLat = toRad(lat2 - lat1)
+  const dLon = toRad(lon2 - lon1)
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2
+  return 2 * R * Math.asin(Math.sqrt(a))
+}
+const distanceKmComputed = computed(() => {
+  const s = selectedSuggestion.value
+  const lat = Number.parseFloat(s?.data?.geo_lat)
+  const lon = Number.parseFloat(s?.data?.geo_lon)
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return 0
+  return Math.round(haversine(lat, lon, NOVOSIB.lat, NOVOSIB.lon))
+})
+const showEta = computed(() => Boolean(selectedSuggestion.value?.data?.house && distanceKmComputed.value > 0))
+const days = computed(() => {
+  const items = cart.value
+  if (!Array.isArray(items) || items.length === 0) return 1
+  const totalQty = items.reduce((sum, it) => sum + (it?.qty ?? 1), 0)
+  const uniqueIds = new Set(items.map(it => it?.id)).size
+  let d = 1 + Math.ceil(totalQty * 0.5) + Math.ceil(uniqueIds * 0.3) + Math.ceil(distanceKmComputed.value / 700)
+  return Math.max(1, Math.min(28, d))
+})
+const estimatedDate = computed(() => {
+  const dt = new Date()
+  dt.setDate(dt.getDate() + days.value)
+  const dd = String(dt.getDate()).padStart(2, '0')
+  const mm = String(dt.getMonth() + 1).padStart(2, '0')
+  const yyyy = dt.getFullYear()
+  return `${dd}.${mm}.${yyyy}`
+})
+
 async function submitOrder() {
   if (!address.value) {
-    error.value = "Введите адрес доставки"
+    error.value = 'Введите адрес доставки'
     return
   }
-
   if (!isAddressValid.value) {
-    error.value = "ВВедите адресс из списка"
+    error.value = 'Выберите точный адрес из подсказок'
     return
   }
-
   try {
-    const res = await fetch("http://127.0.0.1:8000/checkout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    const res = await fetch('http://127.0.0.1:8000/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         address: address.value,
+        geo_lat: parseFloat(selectedSuggestion.value?.data?.geo_lat) || null,
+        geo_lon: parseFloat(selectedSuggestion.value?.data?.geo_lon) || null,
         items: cart.value.map(item => ({
           id: item.id,
           name: item.name,
@@ -75,42 +106,28 @@ async function submitOrder() {
         }))
       })
     })
-
-    // читаем JSON только один раз
     let data = {}
     try {
       data = await res.json()
     } catch (e) {
-      console.error("Не удалось распарсить JSON:", e)
+      console.error('Ошибка парсинга JSON:', e)
     }
+    if (!res.ok) throw new Error(data?.detail || 'Не удалось оформить заказ')
 
-    console.log("Ответ сервера:", res.status, data)
-
-    if (!res.ok) {
-      throw new Error(data?.detail || "Ошибка при оформлении заказа")
-    }
-
-    // сохраняем данные заказа
     orderId.value = data.order_id
     amount.value = data.amount
     error.value = null
 
-    // редиректим на оплату
     await router.push({
-      name: "pay",
-      query: { 
-        order_id: String(data.order_id), 
-        amount: String(data.amount) 
-      }
+      name: 'pay',
+      query: { order_id: String(data.order_id), amount: String(data.amount) }
     })
 
-    // очищаем корзину
     clearCart()
   } catch (err) {
     error.value = err.message
   }
 }
-
 </script>
 
 <template>
@@ -125,29 +142,34 @@ async function submitOrder() {
             v-model="address"
             type="text"
             placeholder="Введите адрес"
-            @input="(isAddressValid = false, fetchSuggestions(address))"
+            @input="(selectedSuggestion = null, fetchSuggestions(address))"
           />
         </label>
 
-        <!-- список подсказок -->
+        <!-- Подсказки адреса -->
         <ul v-if="suggestions.length" class="suggestions">
           <li
             v-for="s in suggestions"
-            :key="s"
-            @click="(address = s, isAddressValid = true, suggestions = [])"
+            :key="s.value"
+            @click="(address = s.value, selectedSuggestion = s, suggestions = [])"
           >
-            {{ s }}
+            {{ s.value }}
           </li>
         </ul>
 
-        <button @click="submitOrder">Подтвердить заказ</button>
+        <div class="eta" v-if="showEta">
+          Примерная доставка: <strong>{{ days }}</strong> дн. (до {{ estimatedDate }})
+        </div>
+
+        <button :disabled="!isAddressValid" @click="submitOrder">Оплатить заказ</button>
+        <div v-if="!isAddressValid && address" class="hint">Пожалуйста, выберите точный адрес из списка</div>
 
         <div v-if="error" class="error">{{ error }}</div>
       </div>
 
       <div v-else>
-        <h2>Спасибо за заказ!</h2>
-        <p>Ваш заказ будет доставлен примерно в <strong>{{ delivery }}</strong>.</p>
+        <h2>Заказ оформлен!</h2>
+        <p>Доставка будет выполнена по адресу <strong>{{ delivery }}</strong>.</p>
         <button @click="router.push('/')">На главную</button>
       </div>
     </div>
@@ -223,4 +245,16 @@ button:hover {
   color: #e74c3c;
   margin-top: 10px;
 }
+
+.eta {
+  margin: 10px 0 16px;
+  color: #374151;
+}
+
+.hint {
+  margin-top: 8px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
 </style>

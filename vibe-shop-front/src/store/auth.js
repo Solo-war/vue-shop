@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { syncCartOnLogin, syncCartOnLogout } from '../cart.js'
 import axios from 'axios'
 
 export const useAuthStore = defineStore('auth', {
@@ -18,6 +19,9 @@ export const useAuthStore = defineStore('auth', {
       this.token = res.data.access_token
       localStorage.setItem('token', this.token)
       await this.fetchUser()
+      if (this.user?.username) {
+        syncCartOnLogin(this.user.username)
+      }
     },
     async register(username, password) {
       try {
@@ -38,6 +42,9 @@ export const useAuthStore = defineStore('auth', {
       this.user = res.data
     },
     logout() {
+      if (this.user?.username) {
+        syncCartOnLogout()
+      }
       this.user = null
       this.token = null
       localStorage.removeItem('token')

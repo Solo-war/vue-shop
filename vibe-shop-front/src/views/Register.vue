@@ -1,10 +1,13 @@
 <template>
-  <div>
-    <h2>Register</h2>
-    <input v-model="username" placeholder="Username" />
-    <input v-model="password" placeholder="Password" type="password" />
-    <button @click="register">Register</button>
+  <div class="container" style="max-width:520px">
+    <div class="card">
+      <h2>Register</h2>
+      <input v-model="username" placeholder="Username" />
+      <input v-model="password" placeholder="Password" type="password" />
+      <button class="btn btn-primary" @click="register">Register</button>
+    </div>
   </div>
+  
 </template>
 
 <script setup>

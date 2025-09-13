@@ -18,13 +18,12 @@ function toggleBasket() {
 }
 </script>
 <template>
-  <div>
-    
+  <div class="app-shell">
     <SiteHeader />
-    <RouterView />
-    
+    <transition name="fade" mode="out-in">
+      <RouterView />
+    </transition>
   </div>
 </template>
-
 
 
