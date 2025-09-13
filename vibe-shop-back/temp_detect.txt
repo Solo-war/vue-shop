@@ -1,0 +1,121 @@
+def detect_brand(num: str) -> str:
+    # Visa
+    if len(num) in (13,16,19) and num.startswith('4'):
+        return 'visa'
+    # MasterCard ranges: 51-55 or 2221-2720 (16 digits)
+    if len(num) == 16 and num.isdigit():
+        first2 = int(num[:2])
+        first4 = int(num[:4])
+        first6 = int(num[:6])
+        if 51 <= first2 <= 55:
+            return 'mastercard'
+        if 2221 <= first4 <= 2720 or 222100 <= first6 <= 272099:
+            return 'mastercard'
+    # MIR 2200-2204 (16 digits)
+    if len(num) == 16 and num.isdigit():
+        first4 = int(num[:4])
+        if 2200 <= first4 <= 2204:
+            return 'mir'
+    return 'unknown'
+
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+def create_access_token(data: dict, expires_delta: int = None):
+    to_encode = data.copy()
+    expire = datetime.datetime.utcnow() + datetime.timedelta(
+        minutes=expires_delta or ACCESS_TOKEN_EXPIRE_MINUTES
+    )
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+def get_password_hash(password):
+    return pwd_context.hash(password)
+
+class UserCreate(BaseModel):
+    username: str
+    password: str
+    role: str = "user"
+
+class UserOut(BaseModel):
+    id: int
+    username: str
+    role: str
+    class Config:
+        orm_mode = True
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class OrderRequest(BaseModel):
+    address: str
+    items: list[dict]   # [{id, name, price, qty}]
+
+class OrderResponse(BaseModel):
+    order_id: int
+    delivery_time: str
+
+
+class Item(BaseModel):
+    id: int
+    name: str
+    price: int
+    qty: int
+
+class CheckoutRequest(BaseModel):
+    address: str
+    items: list[Item]
+    geo_lat: float | None = None
+    geo_lon: float | None = None
+
+class CheckoutResponse(BaseModel):
+    order_id: str
+    amount: int
+    eta_days: int | None = None
+    eta_date: str | None = None
+    distance_km: int | None = None
+
+class PayRequest(BaseModel):
+    order_id: str
+    # ВАЖНО: этот API принимает card_number только ради DEMO — но сервер не сохраняет полный номер.
+    card_number: str = Field(..., description="Только ТЕСТОВЫЕ номера (не вводите реальные данные)")
+    exp_month: str
+    exp_year: str
+    name: str
+
+class PayResponse(BaseModel):
+    status: str
+    message: str
+    transaction_id: str | None = None
+    delivery_time: str | None = None
+
+
+# Haversine helpers and ETA calculation
+NOVOSIB = (55.0084, 82.9357)
+
+def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    R = 6371.0
+    dLat = math.radians(lat2 - lat1)
+    dLon = math.radians(lon2 - lon1)
+    a = math.sin(dLat / 2) ** 2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dLon / 2) ** 2
+    return 2 * R * math.asin(math.sqrt(a))
+
+def calc_eta(items: list[Item], geo_lat: float | None, geo_lon: float | None) -> tuple[int, str, int]:
+    total_qty = sum(i.qty for i in items) if items else 0
+    unique_ids = len({i.id for i in items}) if items else 0
+    distance = 0
+    if geo_lat is not None and geo_lon is not None:
+        try:
+            distance = int(round(haversine_km(geo_lat, geo_lon, NOVOSIB[0], NOVOSIB[1])))
+        except Exception:
+            distance = 0
+    days = 1 + math.ceil(total_qty * 0.5) + math.ceil(unique_ids * 0.3) + math.ceil(distance / 700)

@@ -1,23 +1,163 @@
 [
   {
     "id": 1,
-    "title": "T-Shirt",
-    "price": 19.99,
-    "image": "/images/tshirt.jpg",
-    "description": "Comfortable cotton tee"
+    "title": "Дисплей (LCD) для iPhone 11",
+    "price": 6990,
+    "image": "/images/placeholder.svg",
+    "description": "Замена экрана. Совместим с iPhone 11."
   },
   {
     "id": 2,
-    "title": "Cap",
-    "price": 9.99,
-    "image": "/images/cap.jpg",
-    "description": "Stylish cap"
+    "title": "Дисплей (OLED) для iPhone X/XS",
+    "price": 8990,
+    "image": "/images/placeholder.svg",
+    "description": "Высококонтрастная OLED-матрица для iPhone X/XS."
   },
   {
     "id": 3,
-    "title": "Hoodie",
-    "price": 39.99,
-    "image": "/images/hoodie.jpg",
-    "description": "Warm hoodie"
+    "title": "Аккумулятор для iPhone 11 (3110 мА·ч)",
+    "price": 2490,
+    "image": "/images/placeholder.svg",
+    "description": "Новый сменный аккумулятор с защитной электроникой."
+  },
+  {
+    "id": 4,
+    "title": "Аккумулятор для iPhone XR",
+    "price": 2390,
+    "image": "/images/placeholder.svg",
+    "description": "Оригинальная емкость и размер."
+  },
+  {
+    "id": 5,
+    "title": "Разъём зарядки (Lightning) для iPhone 11",
+    "price": 1790,
+    "image": "/images/placeholder.svg",
+    "description": "Шлейф системного разъёма с микрофоном."
+  },
+  {
+    "id": 6,
+    "title": "Разъём зарядки (Lightning) для iPhone 8",
+    "price": 1290,
+    "image": "/images/placeholder.svg",
+    "description": "Шлейф системного разъёма, совместим с iPhone 8."
+  },
+  {
+    "id": 7,
+    "title": "Основная камера для iPhone 11",
+    "price": 4990,
+    "image": "/images/placeholder.svg",
+    "description": "Модуль основной камеры 12 МП."
+  },
+  {
+    "id": 8,
+    "title": "Фронтальная камера для iPhone 11",
+    "price": 2990,
+    "image": "/images/placeholder.svg",
+    "description": "Селфи‑камера с датчиками освещения/приближения."
+  },
+  {
+    "id": 9,
+    "title": "Динамик (полифонический) для iPhone 11",
+    "price": 1290,
+    "image": "/images/placeholder.svg",
+    "description": "Нижний громкий динамик, оригинальное качество."
+  },
+  {
+    "id": 10,
+    "title": "Слуховой динамик (earpiece) для iPhone 11",
+    "price": 1290,
+    "image": "/images/placeholder.svg",
+    "description": "Верхний динамик разговорный."
+  },
+  {
+    "id": 11,
+    "title": "Тактильный вибромотор Taptic Engine для iPhone 11",
+    "price": 2790,
+    "image": "/images/placeholder.svg",
+    "description": "Оригинальный модуль Taptic Engine."
+  },
+  {
+    "id": 12,
+    "title": "Микрофонный/антенный шлейф для iPhone 11",
+    "price": 1490,
+    "image": "/images/placeholder.svg",
+    "description": "Комбинированный шлейф микрофона и антенн."
+  },
+  {
+    "id": 13,
+    "title": "Шлейф кнопки питания для iPhone 11",
+    "price": 1390,
+    "image": "/images/placeholder.svg",
+    "description": "Клавиша включения с контактами и микрофоном."
+  },
+  {
+    "id": 14,
+    "title": "Шлейф кнопок громкости для iPhone 11",
+    "price": 1290,
+    "image": "/images/placeholder.svg",
+    "description": "Шлейф регулировки громкости и mute."
+  },
+  {
+    "id": 15,
+    "title": "Лоток SIM для iPhone 11",
+    "price": 390,
+    "image": "/images/placeholder.svg",
+    "description": "Цвет: черный. Плотная посадка, пылезащита."
+  },
+  {
+    "id": 16,
+    "title": "Стекло камеры (линза) для iPhone 11",
+    "price": 490,
+    "image": "/images/placeholder.svg",
+    "description": "Защитное стекло основной камеры."
+  },
+  {
+    "id": 17,
+    "title": "Задняя крышка (стекло) для iPhone 11",
+    "price": 3490,
+    "image": "/images/placeholder.svg",
+    "description": "Стеклянная панель корпуса, клей в комплекте."
+  },
+  {
+    "id": 18,
+    "title": "Рамка корпуса (midframe) для iPhone 11",
+    "price": 3990,
+    "image": "/images/placeholder.svg",
+    "description": "Средняя часть корпуса, высокая точность подгонки."
+  },
+  {
+    "id": 19,
+    "title": "Вибромотор для iPhone 8",
+    "price": 1090,
+    "image": "/images/placeholder.svg",
+    "description": "Модуль вибрации для iPhone 8/SE(2020)."
+  },
+  {
+    "id": 20,
+    "title": "Клеевая прокладка дисплея для iPhone 11",
+    "price": 290,
+    "image": "/images/placeholder.svg",
+    "description": "Гидроизоляционная клей‑лента для экрана."
+  },
+  {
+    "id": 21,
+    "title": "Катушка беспроводной зарядки/NFC для iPhone 11",
+    "price": 1990,
+    "image": "/images/placeholder.svg",
+    "description": "Катушка индукции с модулем NFC."
+  },
+  {
+    "id": 22,
+    "title": "Шлейф датчика приближения/освещения для iPhone 11",
+    "price": 990,
+    "image": "/images/placeholder.svg",
+    "description": "Совместим с iPhone 11, клей в комплекте."
+  },
+  {
+    "id": 23,
+    "title": "Антенна Wi‑Fi/Bluetooth для iPhone 11",
+    "price": 1290,
+    "image": "/images/placeholder.svg",
+    "description": "Комбинированная антенна связи."
   }
 ]

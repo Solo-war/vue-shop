@@ -1,0 +1,121 @@
+def calc_eta(items: list[Item], geo_lat: float | None, geo_lon: float | None) -> tuple[int, str, int]:
+    total_qty = sum(i.qty for i in items) if items else 0
+    unique_ids = len({i.id for i in items}) if items else 0
+    distance = 0
+    if geo_lat is not None and geo_lon is not None:
+        try:
+            distance = int(round(haversine_km(geo_lat, geo_lon, NOVOSIB[0], NOVOSIB[1])))
+        except Exception:
+            distance = 0
+    days = 1 + math.ceil(total_qty * 0.5) + math.ceil(unique_ids * 0.3) + math.ceil(distance / 700)
+    days = max(1, min(days, 28))
+    eta_date = (datetime.datetime.now() + datetime.timedelta(days=days)).strftime("%d.%m.%Y")
+    return days, eta_date, distance
+
+class DeliveryEtaRequest(BaseModel):
+    geo_lat: float
+    geo_lon: float
+    items: list[Item]
+
+class DeliveryEtaResponse(BaseModel):
+    distance_km: int
+    eta_days: int
+    eta_date: str
+
+@app.post("/delivery-eta", response_model=DeliveryEtaResponse)
+def delivery_eta(req: DeliveryEtaRequest):
+    days, eta_date, distance = calc_eta(req.items, req.geo_lat, req.geo_lon)
+    return DeliveryEtaResponse(distance_km=distance, eta_days=days, eta_date=eta_date)
+
+# --- Auth API ---
+@app.post("/register", response_model=UserOut)
+def register(user: UserCreate, db: Session = Depends(get_db)):
+    db_user = db.query(User).filter(User.username == user.username).first()
+    if db_user:
+        raise HTTPException(status_code=400, detail="Username already registered")
+
+    hashed_pw = get_password_hash(user.password)
+    new_user = User(username=user.username, password_hash=hashed_pw, role="user")  # С„РёРєСЃ: РІСЃРµРіРґР° "user"
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return new_user
+
+@app.post("/token", response_model=Token)
+def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.username == form_data.username).first()
+    if not user or not verify_password(form_data.password, user.password_hash):
+        raise HTTPException(status_code=401, detail="Incorrect username or password")
+    token = create_access_token({"sub": user.username, "role": user.role})
+    return {"access_token": token, "token_type": "bearer"}
+
+@app.get("/me", response_model=UserOut)
+def read_users_me(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    user = db.query(User).filter(User.username == username).first()
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+@app.get("/health/live")
+async def health() -> dict:
+    return {"status": "ok"}
+
+@app.get("/products")
+async def products():
+    try:
+        with DATA_FILE.open(encoding="utf-8") as f:
+            data = json.load(f)
+        return JSONResponse(content=data)
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
+
+@app.post("/checkout", response_model=CheckoutResponse)
+def checkout(req: CheckoutRequest):
+    if not req.items:
+        raise HTTPException(status_code=400, detail="РљРѕСЂР·РёРЅР° РїСѓСЃС‚Р°")
+
+    amount = sum(item.price * item.qty for item in req.items)
+
+    order_id = f"ORD-{random.randint(100000,999999)}"
+    created_at = datetime.datetime.utcnow().isoformat()
+
+    con = sqlite3.connect(DB_FILE)
+    cur = con.cursor()
+    cur.execute(
+        "INSERT INTO orders (order_id, address, items, amount, created_at, geo_lat, geo_lon) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        (order_id, req.address, str([item.dict() for item in req.items]), amount, created_at, str(req.geo_lat) if req.geo_lat is not None else None, str(req.geo_lon) if req.geo_lon is not None else None)
+    )
+    con.commit()
+    con.close()
+
+    days, eta_date, distance = calc_eta(req.items, req.geo_lat, req.geo_lon) if (req.geo_lat is not None and req.geo_lon is not None) else (None, None, None)
+    return CheckoutResponse(order_id=order_id, amount=amount, eta_days=days, eta_date=eta_date, distance_km=distance)
+
+
+@app.post("/pay-mock", response_model=PayResponse)
+def pay_mock(req: PayRequest):
+    # Принимаем валидные (Luhn) номера Visa/MasterCard/Мир. Спецномер — decline.
+    card = req.card_number.replace(" ", "")
+    if card == "4000000000009995":
+        brand = "visa_decline"
+        status = "declined"
+        message = "Оплата отклонена"
+        txn = None
+    else:
+        brand = detect_brand(card)
+        if brand == 'unknown' or not luhn_check(card):
+            raise HTTPException(status_code=400, detail="Номер карты недействителен")
+        status = "succeeded"
+        message = "Оплата прошла успешно"
+        txn = f"TXN-{random.randint(1000000,9999999)}"
+
+    last4 = card[-4:]
+
