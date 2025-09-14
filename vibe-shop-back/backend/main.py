@@ -17,8 +17,51 @@ import json
 import datetime
 import sqlite3
 import ast
+import re
+import shutil
+from starlette.staticfiles import StaticFiles
+
+"""
+Static images handling
+We prefer to keep product images under backend folder `public/images/tees/images`.
+At startup we ensure that directory exists and, if empty, optionally copy images
+from the legacy frontend public path to keep local dev working.
+"""
+
+# Frontend images (legacy dev source)
+FRONT_TEE_IMAGES_DIR = (
+    Path(__file__).resolve().parents[2]
+    / "vibe-shop-front"
+    / "public"
+    / "images"
+    / "tees"
+    / "images"
+)
+
+# Backend-preferred images root
+BACK_IMAGES_ROOT = Path(__file__).parent / "public" / "images"
+BACK_TEE_IMAGES_DIR = BACK_IMAGES_ROOT / "tees" / "images"
+
+def ensure_images_synced():
+    try:
+        BACK_TEE_IMAGES_DIR.mkdir(parents=True, exist_ok=True)
+        # Copy only once if backend dir is empty and frontend has files
+        back_has_any = any(BACK_TEE_IMAGES_DIR.glob("*"))
+        if (not back_has_any) and FRONT_TEE_IMAGES_DIR.exists():
+            for p in FRONT_TEE_IMAGES_DIR.iterdir():
+                if p.is_file() and re.search(r"\.(jpe?g|png|webp)$", p.name, flags=re.I):
+                    shutil.copy2(p, BACK_TEE_IMAGES_DIR / p.name)
+    except Exception:
+        # Non-fatal for API
+        pass
 
 app = FastAPI()
+ensure_images_synced()
+try:
+    BACK_IMAGES_ROOT.mkdir(parents=True, exist_ok=True)
+    app.mount("/images", StaticFiles(directory=str(BACK_IMAGES_ROOT)), name="images")
+except Exception:
+    pass
 
 app.add_middleware(
     CORSMiddleware,
@@ -359,7 +402,85 @@ async def products():
     try:
         with DATA_FILE.open(encoding="utf-8") as f:
             data = json.load(f)
-        return JSONResponse(content=data)
+
+        # Try to discover local tee images first; if present, build products directly
+        images_map: dict[str, list[str]] = {}
+        try:
+            scan_dir = BACK_TEE_IMAGES_DIR if BACK_TEE_IMAGES_DIR.exists() else FRONT_TEE_IMAGES_DIR
+            if scan_dir.exists():
+                files = [p.name for p in scan_dir.iterdir() if p.is_file()]
+                # Group by numeric prefix before underscore: 3278_1.jpg -> key "3278"
+                tmp: dict[str, list[str]] = {}
+                for name in files:
+                    if not re.search(r"\.(jpe?g|png|webp)$", name, flags=re.I):
+                        continue
+                    parts = name.split("_", 1)
+                    if len(parts) < 2:
+                        continue
+                    key = parts[0]
+                    tmp.setdefault(key, []).append(name)
+                # Sort each group by trailing numeric part if present
+                for key, names in tmp.items():
+                    def sort_key(n: str) -> tuple[int, str]:
+                        m = re.search(r"_(\d+)", n)
+                        return (int(m.group(1)) if m else 0, n)
+                    sorted_names = sorted(names, key=sort_key)
+                    first_six = [n for n in sorted_names if re.search(r"_(\d+)\.", n)]
+                    first_six = first_six[:6]
+                    if len(first_six) == 6:
+                        images_map[key] = [f"/images/tees/images/{n}" for n in first_six]
+        except Exception:
+            images_map = {}
+
+        # Create a stable ordering of image groups
+        ordered_groups = sorted(images_map.keys(), key=lambda k: int(k)) if images_map else []
+
+        def slugify(name: str) -> str:
+            s = re.sub(r"[^a-zA-Z0-9]+", "-", name).strip("-")
+            return s.lower()
+
+        # If we have local image groups, derive products from them to keep names/descriptions consistent with pictures
+        if False and ordered_groups:
+            result = []
+            base_price = 2990
+            for idx, key in enumerate(ordered_groups):
+                imgs = images_map.get(key) or []
+                # Use a consistent tee naming and generic tee description in Russian
+                name = f"Футболка VIBE #{key}"
+                desc = "Базовая унисекс-футболка из хлопка 240 GSM. Плотная ткань, комфортная посадка, true-to-size."
+                price = base_price + (idx % 10) * 100
+                result.append({
+                    "id": int(key),
+                    "slug": f"tee-{key}",
+                    "name": name,
+                    "price": price,
+                    "description": desc,
+                    "image": imgs[0] if imgs else "/images/placeholder.svg",
+                    "images": imgs,
+                })
+            return JSONResponse(content=result)
+
+        # Otherwise, build from JSON and attach local photo groups (exactly 6 per product)
+        result = []
+        for i, item in enumerate(data if isinstance(data, list) else []):
+            item = dict(item)
+            if i < len(ordered_groups):
+                gid = ordered_groups[i]
+                imgs = images_map.get(gid) or []
+                item["id"] = int(gid)
+                if imgs:
+                    item["images"] = imgs
+                    item["image"] = imgs[0]
+            else:
+                item.setdefault("id", i)
+                imgs = item.get("images") or []
+                if imgs:
+                    item["image"] = imgs[0]
+            if item.get("name"):
+                item["slug"] = slugify(str(item["name"]))
+            result.append(item)
+
+        return JSONResponse(content=result)
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
 

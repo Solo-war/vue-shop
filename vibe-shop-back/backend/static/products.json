@@ -1,14 +1,176 @@
 [
   {
-    "name": "Acoustic Guitar",
-    "price": 15000,
-    "description": "A warm and resonant acoustic guitar.",
-    "images": ["/images/guitar.svg"]
+    "name": "VIBE Tee Black & Gold",
+    "price": 3990,
+    "description": "Premium cotton tee, dense 240 GSM. Minimal branding with VIBE chest print.",
+    "images": ["https://source.unsplash.com/800x600/?black%20t-shirt"]
   },
   {
-    "name": "Electric Keyboard",
-    "price": 23000,
-    "description": "An 88-key electric keyboard with multiple voices.",
-    "images": ["/images/keyboard.svg"]
+    "name": "VIBE Tee Graphite",
+    "price": 3690,
+    "description": "Soft-hand feel, everyday essential. Works great layered or solo.",
+    "images": ["https://source.unsplash.com/800x600/?graphite%20t-shirt"]
+  },
+  {
+    "name": "VIBE Tee Navy Blue",
+    "price": 3690,
+    "description": "Classic navy shade with durable ribbed collar. Everyday casual to streetwear.",
+    "images": ["https://source.unsplash.com/800x600/?navy%20t-shirt"]
+  },
+  {
+    "name": "VIBE Tee Emerald",
+    "price": 3790,
+    "description": "Rich emerald tone with subtle texture. Stays in shape after wash.",
+    "images": ["https://source.unsplash.com/800x600/?emerald%20t-shirt"]
+  },
+  {
+    "name": "VIBE Tee Sand",
+    "price": 3590,
+    "description": "Neutral sand color, easy to match. Minimalist vibe with clean lines.",
+    "images": ["https://source.unsplash.com/800x600/?beige%20t-shirt"]
+  },
+  {
+    "name": "VIBE Tee Burgundy",
+    "price": 3790,
+    "description": "Deep burgundy tone. Soft knit, durable seams. True-to-size fit.",
+    "images": ["https://source.unsplash.com/800x600/?burgundy%20t-shirt"]
+  },
+  {
+    "name": "VIBE Tee Charcoal",
+    "price": 3690,
+    "description": "Washed charcoal finish. Breathable and comfy for all-day wear.",
+    "images": ["https://source.unsplash.com/800x600/?charcoal%20t-shirt"]
+  },
+  {
+    "name": "VIBE Tee Cobalt",
+    "price": 3790,
+    "description": "Vivid cobalt blue for a bold look. Smooth jersey knit.",
+    "images": ["https://source.unsplash.com/800x600/?cobalt%20t-shirt"]
+  },
+  {
+    "name": "VIBE Tee Off-White",
+    "price": 3590,
+    "description": "Warm off‑white shade. Timeless, clean silhouette with tapered sleeves.",
+    "images": ["https://source.unsplash.com/800x600/?off-white%20t-shirt"]
+  },
+  {
+    "name": "VIBE Tee Blackout Limited",
+    "price": 4290,
+    "description": "Stealth all‑black limited drop with subtle matte logo.",
+    "images": ["https://source.unsplash.com/800x600/?black%20t-shirt%20minimal"]
+  },
+  {
+    "name": "VIBE Tee Olive",
+    "price": 3690,
+    "description": "Earthy olive tone. Pairs well with denim or cargos.",
+    "images": ["https://source.unsplash.com/800x600/?olive%20t-shirt"]
+  },
+  {
+    "name": "VIBE Tee Slate",
+    "price": 3690,
+    "description": "Cool slate gray with a modern cut and reinforced collar.",
+    "images": ["https://source.unsplash.com/800x600/?slate%20t-shirt"]
+  },
+  {
+    "name": "VIBE Tee Sky",
+    "price": 3590,
+    "description": "Light sky blue for a fresh, airy look.",
+    "images": ["https://source.unsplash.com/800x600/?light%20blue%20t-shirt"]
+  },
+  {
+    "name": "VIBE Tee Mint",
+    "price": 3590,
+    "description": "Soft mint pastel. Lightweight fabric with smooth hand feel.",
+    "images": ["https://source.unsplash.com/800x600/?mint%20t-shirt"]
+  },
+  {
+    "name": "VIBE Tee Coral",
+    "price": 3590,
+    "description": "Vibrant coral accent piece for summer fits.",
+    "images": ["https://source.unsplash.com/800x600/?coral%20t-shirt"]
+  },
+  {
+    "name": "VIBE Tee Sunset",
+    "price": 3790,
+    "description": "Warm sunset tone with a relaxed, drop-shoulder silhouette.",
+    "images": ["https://source.unsplash.com/800x600/?orange%20t-shirt"]
+  },
+  {
+    "name": "VIBE Tee Lilac",
+    "price": 3690,
+    "description": "Muted lilac color. Subtle statement piece.",
+    "images": ["https://source.unsplash.com/800x600/?lilac%20t-shirt"]
+  },
+  {
+    "name": "VIBE Tee Lavender",
+    "price": 3690,
+    "description": "Lavender pastel with a silky finish. Breathable knit.",
+    "images": ["https://source.unsplash.com/800x600/?lavender%20t-shirt"]
+  },
+  {
+    "name": "VIBE Tee Smoke",
+    "price": 3590,
+    "description": "Smoky gray with vintage wash effect.",
+    "images": ["https://source.unsplash.com/800x600/?smoke%20t-shirt"]
+  },
+  {
+    "name": "VIBE Tee Forest",
+    "price": 3790,
+    "description": "Deep forest green, sturdy and soft. Everyday staple.",
+    "images": ["https://source.unsplash.com/800x600/?forest%20green%20t-shirt"]
+  },
+  {
+    "name": "VIBE Tee Mustard",
+    "price": 3590,
+    "description": "Mustard yellow pop. Minimalist chest print.",
+    "images": ["https://source.unsplash.com/800x600/?mustard%20t-shirt"]
+  },
+  {
+    "name": "VIBE Tee Cream",
+    "price": 3590,
+    "description": "Creamy off-white hue with a structured drape.",
+    "images": ["https://source.unsplash.com/800x600/?cream%20t-shirt"]
+  },
+  {
+    "name": "VIBE Tee Steel",
+    "price": 3690,
+    "description": "Steel gray with a matte look. Clean neckline.",
+    "images": ["https://source.unsplash.com/800x600/?steel%20t-shirt"]
+  },
+  {
+    "name": "VIBE Tee Aqua",
+    "price": 3690,
+    "description": "Aqua blue, lightweight and breathable for warmer days.",
+    "images": ["https://source.unsplash.com/800x600/?aqua%20t-shirt"]
+  },
+  {
+    "name": "VIBE Tee Stone",
+    "price": 3590,
+    "description": "Stone gray neutral. Pairs well with everything.",
+    "images": ["https://source.unsplash.com/800x600/?stone%20t-shirt"]
+  },
+  {
+    "name": "VIBE Tee Denim",
+    "price": 3690,
+    "description": "Denim-inspired blue tone with durable knit.",
+    "images": ["https://source.unsplash.com/800x600/?denim%20t-shirt"]
+  },
+  {
+    "name": "VIBE Tee Saffron",
+    "price": 3790,
+    "description": "Saffron yellow limited seasonal drop.",
+    "images": ["https://source.unsplash.com/800x600/?yellow%20t-shirt"]
+  },
+  {
+    "name": "VIBE Tee Pine",
+    "price": 3790,
+    "description": "Pine green with subtle VIBE hem label.",
+    "images": ["https://source.unsplash.com/800x600/?pine%20t-shirt"]
+  },
+  {
+    "name": "VIBE Tee Storm",
+    "price": 3690,
+    "description": "Storm gray with tonal logo. Everyday fit.",
+    "images": ["https://source.unsplash.com/800x600/?grey%20t-shirt"]
   }
 ]
