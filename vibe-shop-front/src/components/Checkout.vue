@@ -8,7 +8,7 @@ const address = ref('')
 const suggestions = ref([])
 const selectedSuggestion = ref(null)
 
-// Адрес считается валидным только после выбора из подсказок (c домом)
+// Проверяем, что пользователь выбрал подсказку с номером дома
 const isAddressValid = computed(() => {
   const s = selectedSuggestion.value
   return Boolean(s && s.value === address.value && s?.data?.house)
@@ -37,7 +37,7 @@ async function fetchSuggestions(query) {
       },
       body: JSON.stringify({ query, count: 5 })
     })
-    if (!res.ok) throw new Error('Failed to fetch suggestions')
+    if (!res.ok) throw new Error('Не удалось получить подсказки')
     const data = await res.json()
     suggestions.value = data.suggestions
   } catch (e) {
@@ -46,7 +46,7 @@ async function fetchSuggestions(query) {
   }
 }
 
-// Примитивная оценка срока доставки (локально)
+// Простейшая оценка срока доставки (по расстоянию до Новосибирска)
 const NOVOSIB = { lat: 55.0084, lon: 82.9357 }
 function toRad(v) { return v * Math.PI / 180 }
 function haversine(lat1, lon1, lat2, lon2) {
@@ -87,7 +87,7 @@ async function submitOrder() {
     return
   }
   if (!isAddressValid.value) {
-    error.value = 'Выберите точный адрес из подсказок'
+    error.value = 'Пожалуйста, выберите точный адрес с номером дома'
     return
   }
   try {
@@ -110,7 +110,7 @@ async function submitOrder() {
     try {
       data = await res.json()
     } catch (e) {
-      console.error('Ошибка парсинга JSON:', e)
+      console.error('Не удалось разобрать JSON:', e)
     }
     if (!res.ok) throw new Error(data?.detail || 'Не удалось оформить заказ')
 
@@ -118,9 +118,15 @@ async function submitOrder() {
     amount.value = data.amount
     error.value = null
 
+    const eta = estimatedDate.value
     await router.push({
       name: 'pay',
-      query: { order_id: String(data.order_id), amount: String(data.amount) }
+      query: {
+        order_id: String(data.order_id),
+        amount: String(data.amount),
+        address: address.value,
+        eta: eta,
+      }
     })
 
     clearCart()
@@ -158,18 +164,18 @@ async function submitOrder() {
         </ul>
 
         <div class="eta" v-if="showEta">
-          Примерная доставка: <strong>{{ days }}</strong> дн. (до {{ estimatedDate }})
+          Срок доставки: <strong>{{ days }}</strong> дн. (до {{ estimatedDate }})
         </div>
 
-        <button :disabled="!isAddressValid" @click="submitOrder">Оплатить заказ</button>
-        <div v-if="!isAddressValid && address" class="hint">Пожалуйста, выберите точный адрес из списка</div>
+        <button :disabled="!isAddressValid" @click="submitOrder">Оформить заказ</button>
+        <div v-if="!isAddressValid && address" class="hint">Пожалуйста, выберите точный адрес с номером дома</div>
 
         <div v-if="error" class="error">{{ error }}</div>
       </div>
 
       <div v-else>
         <h2>Заказ оформлен!</h2>
-        <p>Доставка будет выполнена по адресу <strong>{{ delivery }}</strong>.</p>
+        <p>Доставка будет осуществлена по адресу <strong>{{ delivery }}</strong>.</p>
         <button @click="router.push('/')">На главную</button>
       </div>
     </div>
@@ -192,7 +198,7 @@ async function submitOrder() {
   margin: 0;
   padding: 6px;
   border: 1px solid #ccc;
-  background: #fff;
+  background: #111;
   max-height: 180px;
   overflow-y: auto;
   position: absolute;

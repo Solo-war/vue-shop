@@ -2,10 +2,10 @@
   <header class="site-header">
     <div class="inner">
       <div class="left cursor-pointer" @click="$router.push('/')">
-        <img class="logo" :src="logo" alt="logo" />
+        <img class="logo" :src="logo" @error="onLogoError" alt="logo" />
         <div class="brand">
           <div class="title">Vibe Shop</div>
-          <div class="subtitle">Premium marketplace experience</div>
+          <div class="subtitle">Премиум‑маркетплейс</div>
         </div>
       </div>
 
@@ -14,12 +14,39 @@
           v-if="auth.user?.role === 'admin'"
           to="/admin"
           class="icon"
-          aria-label="Admin"
-          title="Admin"
+          aria-label="Админ"
+          title="Админ"
         >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="3"></circle>
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0A1.65 1.65 0 0 0 10.91 3H11a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0A1.65 1.65 0 0 0 21 12v.09a1.65 1.65 0 0 0-1.6 1.41z"></path>
+          <svg width="22" height="22" viewBox="0 0 162.435 162.435" aria-hidden="true">
+            <g>
+              <path fill="currentColor" d="M81.21,162.435c-9.215,0-16.714-6.98-16.714-15.556c0-4.5-6.776-11.324-8.851-12.393
+              c-1.069-0.304-5.257,1.188-9.044,4.975c-6.066,6.066-16.306,5.703-22.818-0.809c-6.516-6.512-6.876-16.751-0.809-22.818
+              c3.204-3.208,3.252-12.757,2.539-14.955c-0.423-0.765-4.169-2.955-9.957-2.955C6.98,97.925,0,90.432,0,81.218
+              s6.98-16.707,15.556-16.707c4.489,0,11.32-6.787,12.393-8.866c0.278-1.025-1.181-5.25-4.971-9.037
+              c-2.981-2.97-4.511-7.024-4.307-11.413c0.197-4.255,2.012-8.301,5.109-11.405c6.516-6.512,16.759-6.876,22.822-0.817
+              c3.223,3.215,12.742,3.245,14.932,2.547c0.776-0.431,2.963-4.18,2.963-9.965C64.496,6.98,71.995,0,81.21,0
+              s16.714,6.98,16.714,15.556c0,4.507,6.776,11.331,8.851,12.4c1.032,0.186,5.25-1.188,9.044-4.982
+              c6.063-6.066,16.302-5.71,22.825,0.817c3.1,3.104,4.919,7.151,5.116,11.405c0.208,4.388-1.322,8.443-4.303,11.413
+              c-3.215,3.215-3.263,12.749-2.547,14.94c0.423,0.772,4.173,2.963,9.968,2.963c8.576,0,15.556,7.492,15.556,16.707
+              s-6.98,16.707-15.556,16.707c-4.503,0-11.331,6.787-12.396,8.866c-0.278,1.025,1.184,5.25,4.979,9.044
+              c2.978,2.978,4.507,7.032,4.299,11.42c-0.197,4.255-2.016,8.301-5.116,11.398c-6.519,6.512-16.755,6.891-22.825,0.809
+              c-3.219-3.223-12.738-3.252-14.925-2.547c-0.78,0.431-2.97,4.173-2.97,9.965C97.925,155.456,90.425,162.435,81.21,162.435z
+               M55.463,126.905c1.318,0,2.554,0.252,3.657,0.824c3.88,1.99,12.979,10.915,12.979,19.15c0,4.388,4.088,7.952,9.111,7.952
+              s9.111-3.564,9.111-7.952c0-7.21,2.818-15.43,8.205-17.19c4.117-1.351,16.789-1.485,22.669,4.396
+              c3.093,3.096,8.513,2.74,12.073-0.809c1.76-1.76,2.788-4.025,2.896-6.378c0.108-2.22-0.635-4.24-2.079-5.688
+              c-5.105-5.109-8.933-12.89-6.367-17.895c1.994-3.883,10.919-12.994,19.161-12.994c4.385,0,7.952-4.084,7.952-9.103
+              s-3.568-9.103-7.952-9.103c-7.21,0-15.43-2.814-17.193-8.205c-1.351-4.121-1.478-16.811,4.403-22.677
+              c1.444-1.448,2.183-3.46,2.075-5.68c-0.108-2.361-1.14-4.626-2.896-6.386c-3.557-3.542-8.966-3.913-12.073-0.817
+              c-5.109,5.101-12.883,8.955-17.895,6.363c-3.88-1.99-12.979-10.915-12.979-19.157c0-4.388-4.088-7.952-9.111-7.952
+              s-9.111,3.564-9.111,7.952c0,7.21-2.814,15.43-8.198,17.19c-4.11,1.351-16.796,1.492-22.677-4.396
+              c-3.111-3.104-8.513-2.725-12.066,0.817c-1.756,1.76-2.784,4.024-2.892,6.378c-0.104,2.228,0.635,4.24,2.079,5.688
+              c5.112,5.101,8.94,12.89,6.363,17.895c-1.619,3.133-10.447,12.987-19.153,12.987c-4.385,0-7.952,4.084-7.952,9.103
+              s3.568,9.103,7.952,9.103c7.217,0,15.437,2.822,17.19,8.212c1.34,4.128,1.463,16.818-4.396,22.677
+              c-3.104,3.104-2.74,8.517,0.809,12.066c3.553,3.549,8.959,3.921,12.066,0.809C45.205,130.106,50.815,126.905,55.463,126.905z"/>
+              <path fill="currentColor" d="M81.218,116.844c-19.651,0-35.641-15.979-35.641-35.626s15.99-35.626,35.641-35.626
+              c19.644,0,35.626,15.979,35.626,35.626S100.861,116.844,81.218,116.844z M81.218,53.195c-15.459,0-28.038,12.571-28.038,28.023
+              s12.578,28.023,28.038,28.023c15.452,0,28.023-12.571,28.023-28.023S96.67,53.195,81.218,53.195z"/>
+            </g>
           </svg>
         </RouterLink>
         <div class="search">
@@ -34,14 +61,14 @@
             @keydown.enter="goSearch"
             @input="onType"
             type="search"
-            placeholder="Search products..."
-            aria-label="Search products"
+            placeholder="Поиск товаров..."
+            aria-label="Поиск товаров"
           />
-          <button v-if="search" class="clear" @click="clearSearch" aria-label="Clear search">
+          <button v-if="search" class="clear" @click="clearSearch" aria-label="Очистить поиск">
             ×
           </button>
         </div>
-        <RouterLink to="/basket" class="icon" aria-label="Basket" title="Basket">
+        <RouterLink to="/basket" class="icon" aria-label="Корзина" title="Корзина">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="9" cy="21" r="1"></circle>
             <circle cx="20" cy="21" r="1"></circle>
@@ -49,29 +76,29 @@
           </svg>
         </RouterLink>
 
-        <RouterLink to="/compare" class="icon with-badge" aria-label="Compare" title="Compare">
+        <RouterLink to="/compare" class="icon with-badge" aria-label="Сравнение" title="Сравнение">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
             <path d="M3 4h6v2H3zM3 9h10v2H3zM3 14h14v2H3zM3 19h18v2H3z" />
           </svg>
           <span v-if="compareList.length" class="badge">{{ compareList.length }}</span>
         </RouterLink>
 
-        <RouterLink to="/favorites" class="icon" aria-label="Favorites" title="Favorites">
+        <RouterLink to="/favorites" class="icon" aria-label="Избранное" title="Избранное">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z" />
           </svg>
         </RouterLink>
 
         <template v-if="auth.user">
-          <RouterLink to="/profile" class="profile" title="Profile">
+          <RouterLink to="/profile" class="profile" title="Профиль">
             <span class="avatar">{{ auth.user.username?.slice(0,1)?.toUpperCase() || 'U' }}</span>
             <span class="name">{{ auth.user.username }}</span>
           </RouterLink>
-          <button @click="logout" class="btn-secondary logout">Logout</button>
+          <button @click="logout" class="btn-secondary logout">Выйти</button>
         </template>
         <template v-else>
-          <RouterLink to="/login" class="auth">Login</RouterLink>
-          <RouterLink to="/register" class="auth">Sign up</RouterLink>
+          <RouterLink to="/login" class="auth">Войти</RouterLink>
+          <RouterLink to="/register" class="auth">Регистрация</RouterLink>
         </template>
       </div>
     </div>
@@ -86,14 +113,26 @@ import { compareList } from '@/compare.js'
 
 const auth = useAuthStore()
 
-const logo = '/images/guitar.svg'
+function asset(u){
+  if(!u) return u
+  const s = String(u)
+  if(/^https?:\/\//i.test(s)) return s
+  const rel = s.replace(/^\/+/, '')
+  const base = String(import.meta.env.BASE_URL || '/')
+  return base.replace(/\/+$/, '/') + rel
+}
+
+const logo = asset('/images/vibe-logo.svg')
+function onLogoError(ev){
+  try{ const el = ev?.target; if(el) el.src = asset('/images/placeholder.svg') }catch{}
+}
 
 const logout = () => {
   auth.logout()
   window.location.href = '/login'
 }
 
-// Search state synced with route query `q`
+// Поиск синхронизирован с query `q`
 const route = useRoute()
 const router = useRouter()
 const search = ref(String(route.query.q || ''))
@@ -112,18 +151,9 @@ function updateRouteQuery(q) {
   }
 }
 
-function onType() {
-  updateRouteQuery(search.value)
-}
-
-function goSearch() {
-  updateRouteQuery(search.value)
-}
-
-function clearSearch() {
-  search.value = ''
-  updateRouteQuery('')
-}
+function onType() { updateRouteQuery(search.value) }
+function goSearch() { updateRouteQuery(search.value) }
+function clearSearch() { search.value = ''; updateRouteQuery('') }
 </script>
 
 <style scoped>
@@ -181,7 +211,7 @@ function clearSearch() {
 .auth { color: var(--text-1); opacity: .9; padding: 8px 10px; }
 .auth:hover { opacity: 1; }
 
-/* Search */
+/* Поиск */
 .search {
   position: relative;
   display: flex;

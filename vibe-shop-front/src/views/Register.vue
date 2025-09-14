@@ -1,10 +1,10 @@
 <template>
   <div class="container" style="max-width:520px">
     <div class="card">
-      <h2>Register</h2>
-      <input v-model="username" placeholder="Username" />
-      <input v-model="password" placeholder="Password" type="password" />
-      <button class="btn btn-primary" @click="register">Register</button>
+      <h2>Регистрация</h2>
+      <input v-model="username" placeholder="Имя пользователя" />
+      <input v-model="password" placeholder="Пароль" type="password" />
+      <button class="btn btn-primary" @click="register">Зарегистрироваться</button>
     </div>
   </div>
   
@@ -23,9 +23,12 @@ const router = useRouter();
 const register = async () => {
   try {
     await auth.register(username.value, password.value);
-    router.push("/login");
+    // Automatically log in the newly registered user
+    await auth.login(username.value, password.value);
+    // Navigate to profile with a welcome flag, so it auto-hides after 3s
+    router.push({ path: "/profile", query: { welcome: 1 } });
   } catch (e) {
-    alert("Registration failed");
+    alert("Ошибка регистрации");
   }
 };
 </script>

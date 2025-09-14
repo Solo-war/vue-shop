@@ -14,11 +14,16 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      // /api/products -> http://localhost:8000/products
+      // Proxy API to Python FastAPI on 8000, strip /api prefix
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'http://127.0.0.1:8000',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+      // Serve product images from backend in dev
+      '/images': {
+        target: 'http://127.0.0.1:8000',
+        changeOrigin: true,
       },
     },
   },

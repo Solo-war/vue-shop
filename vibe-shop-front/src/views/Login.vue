@@ -1,10 +1,10 @@
 <template>
   <div class="container" style="max-width:520px">
     <div class="card">
-      <h2>Login</h2>
-      <input v-model="username" placeholder="Username" />
-      <input v-model="password" placeholder="Password" type="password" />
-      <button class="btn btn-primary" @click="login">Login</button>
+      <h2>Вход</h2>
+      <input v-model="username" placeholder="Имя пользователя" />
+      <input v-model="password" placeholder="Пароль" type="password" />
+      <button class="btn btn-primary" @click="login">Войти</button>
     </div>
   </div>
   
@@ -25,7 +25,7 @@ const login = async () => {
     await auth.login(username.value, password.value);
     router.push("/profile");
   } catch (e) {
-    alert("Login failed");
+    alert("Ошибка входа");
   }
 };
 </script>

@@ -12,6 +12,7 @@ import PayMock from '@/components/PayMock.vue'
 import { useAuthStore } from '@/store/auth'
 import { syncCartOnLogin } from '@/cart.js'
 import Admin from '@/views/Admin.vue'
+import ProductDetail from '@/views/ProductDetail.vue'
 
 // 🔹 Сначала создаём список маршрутов
 const routes = [
@@ -29,6 +30,8 @@ const routes = [
   { path: '/checkout', component: Checkout },
   { path: '/pay', name: 'pay', component: PayMock }, // 🔹 новый маршрут
   { path: '/admin', component: Admin, meta: { requiresAuth: true, requiresAdmin: true } },
+  // Support pretty slug or numeric id in the same param
+  { path: '/product/:key', component: ProductDetail },
 ]
 
 // 🔹 Создаём сам роутер

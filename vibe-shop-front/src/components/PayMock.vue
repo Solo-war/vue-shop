@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { ref, watch, computed, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -7,6 +7,8 @@ const router = useRouter()
 
 const order_id = route.query.order_id || ''
 const amount = route.query.amount || 0
+const deliveryAddress = route.query.address || ''
+const etaFromCheckout = route.query.eta || ''
 
 const card_number = ref('')
 const exp_month = ref('')
@@ -15,7 +17,7 @@ const name = ref('')
 const result = ref(null)
 const error = ref(null)
 
-// Delayed receipt generation state
+// Состояние для отложенного формирования чека
 const isGeneratingReceipt = ref(false)
 const receiptSecondsLeft = ref(0)
 const receiptTotalSeconds = ref(0)
@@ -23,25 +25,12 @@ const receipt = ref(null)
 let receiptTimerId = null
 let receiptCountdownId = null
 
-// Confetti celebration state
+// Конфетти (минимально)
 const showConfetti = ref(false)
 const confettiPieces = ref([])
 let confettiHideTimerId = null
 
-
 const rawNumber = computed(() => card_number.value.replace(/\s+/g, ''))
-
-function luhnCheck(num) {
-  if (!/^\d+$/.test(num)) return false
-  let sum = 0
-  let dbl = false
-  for (let i = num.length - 1; i >= 0; i--) {
-    let d = Number(num[i])
-    if (dbl) { d *= 2; if (d > 9) d -= 9 }
-    sum += d; dbl = !dbl
-  }
-  return sum % 10 === 0
-}
 
 function detectBrand(num) {
   if (/^4\d{15}$/.test(num)) return 'visa'
@@ -61,8 +50,6 @@ function detectBrand(num) {
 }
 
 const brand = computed(() => detectBrand(rawNumber.value))
-// Accept any 16-digit card that falls into a known brand range (Visa/MasterCard/MIR),
-// without enforcing the Luhn check (mock environment).
 const isCardValid = computed(() => {
   const n = rawNumber.value
   const b = brand.value
@@ -76,18 +63,15 @@ const isExpValid = computed(() => {
 const isNameValid = computed(() => name.value.trim().length >= 2)
 const canPay = computed(() => isCardValid.value && isExpValid.value && isNameValid.value)
 
-//
 watch(card_number, (val) => {
-  // РЈР±РёСЂР°РµРј РІСЃРµ РїСЂРѕР±РµР»С‹
   let digits = val.replace(/\D/g, '')
-  // Р Р°Р·Р±РёРІР°РµРј РїРѕ 4 СЃРёРјРІРѕР»Р°
   let parts = digits.match(/.{1,4}/g)
   card_number.value = parts ? parts.join(' ') : ''
 })
 
 async function pay() {
   if (!canPay.value) {
-    alert('Enter valid card details (Visa/MasterCard/MIR)')
+    alert('Введите корректные данные карты (Visa/MasterCard/MIR)')
     return
   }
   try {
@@ -96,7 +80,7 @@ async function pay() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         order_id,
-        card_number: card_number.value.replace(/\s+/g, ''), // no spaces
+        card_number: card_number.value.replace(/\s+/g, ''),
         exp_month: exp_month.value,
         exp_year: exp_year.value,
         name: name.value
@@ -118,19 +102,17 @@ async function pay() {
 }
 
 function startReceiptGeneration() {
-  // Random delay between 10 and 60 seconds (inclusive)
+  // Случайная задержка 10..60 сек
   const delaySec = Math.floor(Math.random() * (60 - 10 + 1)) + 10
   receiptSecondsLeft.value = delaySec
   receiptTotalSeconds.value = delaySec
   isGeneratingReceipt.value = true
 
-  // Countdown
   if (receiptCountdownId) clearInterval(receiptCountdownId)
   receiptCountdownId = setInterval(() => {
     if (receiptSecondsLeft.value > 0) receiptSecondsLeft.value--
   }, 1000)
 
-  // Finalize
   if (receiptTimerId) clearTimeout(receiptTimerId)
   receiptTimerId = setTimeout(() => {
     generateReceipt()
@@ -138,7 +120,7 @@ function startReceiptGeneration() {
 }
 
 function launchConfetti() {
-  const count = 120
+  const count = 100
   confettiPieces.value = Array.from({ length: count }, (_, i) => ({
     id: i,
     left: Math.random() * 100,
@@ -151,9 +133,7 @@ function launchConfetti() {
   }))
   showConfetti.value = true
   if (confettiHideTimerId) clearTimeout(confettiHideTimerId)
-  confettiHideTimerId = setTimeout(() => {
-    showConfetti.value = false
-  }, 4500)
+  confettiHideTimerId = setTimeout(() => { showConfetti.value = false }, 4500)
 }
 
 function maskCard(num) {
@@ -167,7 +147,7 @@ function generateReceipt() {
   if (receiptCountdownId) clearInterval(receiptCountdownId)
 
   const now = new Date()
-  const ts = now.toLocaleString()
+  const ts = now.toLocaleString('ru-RU')
   const txn = result.value?.transaction_id || Math.random().toString(36).slice(2, 12)
 
   receipt.value = {
@@ -176,8 +156,8 @@ function generateReceipt() {
     transactionId: txn,
     paidAt: ts,
     cardMasked: maskCard(rawNumber.value),
-    name: name.value.trim() || 'CUSTOMER',
-    status: 'PAID'
+    name: name.value.trim() || 'ПОКУПАТЕЛЬ',
+    status: 'ОПЛАЧЕНО'
   }
 }
 
@@ -185,15 +165,15 @@ function downloadReceiptTxt() {
   if (!receipt.value) return
   const r = receipt.value
   const lines = [
-    'Vibe Shop — Payment Receipt',
+    'Vibe Shop — Чек об оплате',
     '-----------------------------------',
-    `Status: ${r.status}`,
-    `Paid at: ${r.paidAt}`,
-    `Order ID: #${r.orderId}`,
-    `Transaction ID: ${r.transactionId}`,
-    `Amount: ${r.amount} RUB`,
-    `Card: ${r.cardMasked}`,
-    `Name: ${r.name}`,
+    `Статус: ${r.status}`,
+    `Оплачено: ${r.paidAt}`,
+    `Номер заказа: #${r.orderId}`,
+    `ID транзакции: ${r.transactionId}`,
+    `Сумма: ${r.amount} ₽`,
+    `Карта: ${r.cardMasked}`,
+    `Имя: ${r.name}`,
   ]
   const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' })
   const url = URL.createObjectURL(blob)
@@ -220,79 +200,87 @@ onBeforeUnmount(() => {
 <template>
   <div class="pay-page">
     <div class="card">
-      <h1 class="title">Payment</h1>
+      <h1 class="title">Оплата</h1>
       <p class="order-info">
-        Order: <strong>#{{ order_id }}</strong><br />
-        Amount: <strong>{{ amount }} RUB</strong>
+        Заказ: <strong>#{{ order_id }}</strong><br />
+        Сумма: <strong>{{ amount }} ₽</strong>
       </p>
+      <div class="order-info">
+        <template v-if="deliveryAddress">
+          �?�?�?��? �?�?�?�'���?���: <strong>{{ deliveryAddress }}</strong>
+        </template>
+        <template v-if="etaFromCheckout">
+          <br />�?�Ő�?�?�ؐ?���? �?���'�� �?�?�?�'���?���: <strong>{{ etaFromCheckout }}</strong>
+        </template>
+      </div>
 
       <div class="form">
         <label>
-          Card number
+          Номер карты
           <input v-model="card_number" maxlength="19" placeholder="0000 0000 0000 0000" />
-          <small v-if="brand !== 'unknown'" style="color:#374151;display:block;margin-top:4px;">Brand: {{ brand.toUpperCase() }}</small>
-          <small v-if="card_number && !isCardValid" style="color:#dc2626;display:block;margin-top:4px;">Invalid card number</small>
+          <small v-if="brand !== 'unknown'" style="color:#374151;display:block;margin-top:4px;">Бренд: {{ brand.toUpperCase() }}</small>
+          <small v-if="card_number && !isCardValid" style="color:#dc2626;display:block;margin-top:4px;">Неверный номер карты</small>
         </label>
 
         <div class="row">
           <label>
-            MM
+            ММ
             <input v-model="exp_month" placeholder="MM" maxlength="2" />
           </label>
           <label>
-            YY
+            ГГ
             <input v-model="exp_year" placeholder="YY" maxlength="2" />
           </label>
         </div>
 
         <label>
-          Name on card
-          <input v-model="name" placeholder="IVAN IVANOV" />
+          Имя на карте
+          <input v-model="name" placeholder="ИВАН ИВАНОВ" />
         </label>
 
-        <button class="btn" @click="pay">Pay</button>
+        <button class="btn" @click="pay">Оплатить</button>
       </div>
     <div v-if="result" class="result">
       <h3 :class="result.status === 'succeeded' ? 'success' : 'error'">
-        {{ result.status === 'succeeded' ? 'Payment succeeded' : 'Payment error' }}
+        {{ result.status === 'succeeded' ? 'Оплата прошла успешно' : 'Ошибка оплаты' }}
       </h3>
       <p>{{ result.message }}</p>
-      <p v-if="result.transaction_id">Transaction ID: <strong>{{ result.transaction_id }}</strong></p>
+      <p v-if="result.transaction_id">ID транзакции: <strong>{{ result.transaction_id }}</strong></p>
 
       <p class="delivery">
-        Estimated delivery date:
-        <strong>{{ result.delivery_time }}</strong>
+        Оценочная дата доставки:
+        <strong>{{ etaFromCheckout || result.delivery_time }}</strong>
       </p>
 
       <div v-if="result.status === 'succeeded'" class="receipt-block">
         <div v-if="isGeneratingReceipt" class="receipt-progress">
-          <span>Generating receipt…</span>
-          <span v-if="receiptSecondsLeft"> (~{{ receiptSecondsLeft }}s)</span>
+          <span>Создаём чек:</span>
+          <span v-if="receiptSecondsLeft"> (~{{ receiptSecondsLeft }}с)</span>
           <div class="bar"><div class="fill" :style="{ width: (receiptTotalSeconds ? (100 - Math.round((receiptSecondsLeft / receiptTotalSeconds) * 100)) : 0) + '%' }"></div></div>
         </div>
 
         <div v-else-if="receipt" class="receipt">
-          <h4>Payment Receipt</h4>
-          <div class="line"><strong>Status:</strong> {{ receipt.status }}</div>
-          <div class="line"><strong>Paid at:</strong> {{ receipt.paidAt }}</div>
-          <div class="line"><strong>Order ID:</strong> #{{ receipt.orderId }}</div>
-          <div class="line"><strong>Transaction ID:</strong> {{ receipt.transactionId }}</div>
-          <div class="line"><strong>Amount:</strong> {{ receipt.amount }} RUB</div>
-          <div class="line"><strong>Card:</strong> {{ receipt.cardMasked }}</div>
-          <div class="line"><strong>Name:</strong> {{ receipt.name }}</div>
+          <h4>Чек об оплате</h4>
+          <div class="line"><strong>Статус:</strong> {{ receipt.status }}</div>
+          <div class="line"><strong>Оплачено:</strong> {{ receipt.paidAt }}</div>
+          <div class="line"><strong>Номер заказа:</strong> #{{ receipt.orderId }}</div>
+          <div class="line"><strong>ID транзакции:</strong> {{ receipt.transactionId }}</div>
+          <div class="line"><strong>Сумма:</strong> {{ receipt.amount }} ₽</div>
+          <div class="line"><strong>Карта:</strong> {{ receipt.cardMasked }}</div>
+          <div class="line"><strong>Имя:</strong> {{ receipt.name }}</div>
           <div class="receipt-actions">
-            <button class="btn" @click="downloadReceiptTxt">Download .txt</button>
-            <button class="btn-secondary" @click="printReceipt">Print / Save PDF</button>
+            <button class="btn" @click="downloadReceiptTxt">Скачать .txt</button>
+            <button class="btn-secondary" @click="printReceipt">Печать / PDF</button>
           </div>
         </div>
       </div>
 
-      <button class="btn-secondary" @click="$router.push('/')">Back to Home</button>
+      <button class="btn-secondary" @click="$router.push('/')">На главную</button>
     </div>
 
     <div v-if="error" class="error">{{ error }}</div>
 
-    <!-- Confetti celebration overlay -->
+    <!-- Конфетти -->
     <div v-if="showConfetti" class="confetti">
       <div
         v-for="p in confettiPieces"
@@ -346,7 +334,7 @@ input { width: 100%; margin-top: 4px; }
 
 .error { margin-top: 15px; color: var(--danger); text-align: center; font-weight: 600; }
 
-/* Receipt styles */
+/* Чек */
 .receipt-block { margin-top: 12px; }
 .receipt-progress { color: #374151; font-size: 14px; }
 .receipt-progress .bar { margin-top: 8px; height: 8px; background: rgba(255,255,255,0.08); border-radius: 999px; overflow: hidden; }
@@ -356,7 +344,7 @@ input { width: 100%; margin-top: 4px; }
 .receipt .line { margin: 4px 0; }
 .receipt-actions { display: flex; gap: 8px; margin-top: 10px; }
 
-/* Confetti */
+/* Конфетти */
 .confetti {
   position: fixed;
   inset: 0;
@@ -392,10 +380,3 @@ input { width: 100%; margin-top: 4px; }
   to { transform: rotate(calc(720deg * var(--spinDir))); }
 }
 </style>
-
-
-
-
-
-
-

@@ -45,7 +45,7 @@ function decreaseQty(id) {
       <div class="total">Итого: <strong>{{ formatPrice(total) }} ₽</strong></div>
 
       <div class="actions">
-        <RouterLink v-if="cart.length > 0" to="/checkout" class="btn btn-primary">Оформить</RouterLink>
+        <RouterLink v-if="cart.length > 0" to="/checkout" class="btn btn-primary">Оформить заказ</RouterLink>
         <button class="btn btn-danger" @click="clearCart">Очистить корзину</button>
       </div>
     </div>
@@ -63,4 +63,3 @@ function decreaseQty(id) {
 .total { margin-top: 20px; font-size: 18px; }
 .empty { text-align: center; padding: 40px; }
 </style>
-

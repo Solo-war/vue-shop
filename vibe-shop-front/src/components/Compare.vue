@@ -9,12 +9,12 @@
         <table class="compare-table">
           <thead>
             <tr>
-              <th>Характеристика</th>
+              <th>Параметр</th>
               <th v-for="p in compareList" :key="p.id">
                 <div class="head-cell">
                   <img :src="p.image" alt="" class="thumb" />
                   <div class="title">{{ p.name }}</div>
-                  <button class="btn btn-secondary small" @click="removeFromCompare(p.id)">Убрать</button>
+                  <button class="btn btn-secondary small" @click="removeFromCompare(p.id)">Удалить</button>
                 </div>
               </th>
             </tr>
@@ -35,7 +35,7 @@
               <td v-for="p in compareList" :key="p.id + '-act'" class="value">
                 <div class="actions">
                   <button class="btn btn-primary small" @click="addToCart(p)">В корзину</button>
-                  <button class="btn btn-secondary small" @click="removeFromCompare(p.id)">Убрать</button>
+                  <button class="btn btn-secondary small" @click="removeFromCompare(p.id)">Удалить</button>
                 </div>
               </td>
             </tr>
@@ -74,4 +74,3 @@ export default {
 .actions { display: flex; gap: 8px; }
 .small { padding: 8px 10px; font-size: 14px; }
 </style>
-

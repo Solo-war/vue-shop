@@ -11,7 +11,7 @@
   --text-1: #e8eaed; /* primary text */
   --text-2: #b3b8c2; /* secondary text */
   --muted: #7a8291;
-  --brand: #8b5cf6; /* violet-500 */
+  --brand: #6431da; /* violet-500 */
   --brand-2: #22d3ee; /* cyan-400 */
   --success: #22c55e;
   --danger: #ef4444;
@@ -43,23 +43,39 @@
 }
 
 html, body, #app {
-  height: 100%;
+  /* Let page grow beyond viewport so background extends with content */
+  min-height: 100%;
 }
 
 html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  /* Ensure root canvas uses the same base color to avoid seams below body */
+  background-color: var(--bg);
 }
 
 body {
   margin: 0;
   font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji", "Segoe UI Emoji";
   color: var(--text-1);
-  background:
-    radial-gradient(1200px 600px at 10% -10%, rgba(139,92,246,0.12), transparent 60%),
-    radial-gradient(1000px 500px at 110% 10%, rgba(34,211,238,0.10), transparent 60%),
-    linear-gradient(180deg, #0b0c10 0%, #0b0c0f 100%);
+  /* Base color + soft overlays (avoid harsh seam from base linear gradient) */
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(1200px 700px at 12% -10%,
+      rgba(100,49,218,0.18) 0%,
+      rgba(100,49,218,0.12) 30%,
+      rgba(100,49,218,0.08) 55%,
+      rgba(100,49,218,0.04) 72%,
+      transparent 92%),
+    radial-gradient(1100px 550px at 110% 12%,
+      rgba(34,211,238,0.16) 0%,
+      rgba(34,211,238,0.10) 35%,
+      rgba(34,211,238,0.06) 60%,
+      rgba(34,211,238,0.03) 78%,
+      transparent 94%);
+  background-repeat: no-repeat;
+  background-attachment: scroll;
 }
 
 /* Typography */

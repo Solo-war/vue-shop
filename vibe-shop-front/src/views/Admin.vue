@@ -1,6 +1,6 @@
 <template>
   <div class="admin">
-    <h1>Админ панель</h1>
+    <h1>Админ‑панель</h1>
 
     <div class="tabs">
       <button :class="{active: tab==='orders'}" @click="tab='orders'">Заказы</button>
@@ -15,7 +15,7 @@
       <table v-else class="grid">
         <thead>
           <tr>
-            <th>Номер</th>
+            <th>Заказ</th>
             <th>Адрес</th>
             <th>Сумма</th>
             <th>Создан</th>
@@ -33,10 +33,10 @@
             <td>{{ formatDate(o.created_at) }}</td>
             <td>
               <details>
-                <summary>{{ (o.items?.length||0) }} поз.</summary>
+                <summary>{{ (o.items?.length||0) }} тов.</summary>
                 <ul>
                   <li v-for="(it, i) in (o.items||[])" :key="i">
-                    #{{ it.id }}: {{ it.name }} × {{ it.qty }} — {{ formatPrice(it.price) }} ₽
+                    #{{ it.id }}: {{ it.name }} — {{ it.qty }} × {{ formatPrice(it.price) }} ₽
                   </li>
                 </ul>
               </details>
@@ -51,7 +51,7 @@
       <table v-else class="grid">
         <thead>
           <tr>
-            <th>Номер заказа</th>
+            <th>Заказ</th>
             <th>Статус</th>
             <th>Сумма</th>
             <th>Карта</th>
@@ -115,7 +115,7 @@ async function load(){
     orders.value = Array.isArray(o) ? o : []
     payments.value = Array.isArray(p) ? p : []
   }catch(e){
-    error.value = 'Ошибка загрузки: ' + (e?.message || e)
+    error.value = 'Не удалось загрузить данные: ' + (e?.message || e)
   }finally{
     loading.value = false
   }
@@ -130,13 +130,13 @@ onMounted(load)
 .admin{ max-width: 1200px; margin: 24px auto; padding: 0 16px; }
 .tabs{ display:flex; gap:8px; align-items:center; margin-bottom:12px; }
 .tabs .right{ margin-left:auto; }
-button{ padding:8px 12px; border-radius:8px; border:1px solid rgba(0,0,0,.1); background:#fff; cursor:pointer; }
-button.active{ background:#111; color:#fff; }
+button{ padding:8px 12px; border-radius:8px; border:1px solid #fff; background:#111; color: #fff; cursor:pointer; }
+button.active{ background:#666; color:#fff; }
 .loading{ padding:20px; color:#666; }
 .error{ padding:10px; background:#fee; border:1px solid #fbb; color:#900; border-radius:8px; margin-bottom:10px; }
-table.grid{ width:100%; border-collapse: collapse; background:#fff; box-shadow: 0 6px 18px rgba(0,0,0,.06); border-radius:10px; overflow:hidden; }
+table.grid{ width:100%; border-collapse: collapse; background:#fff1; box-shadow: 0 6px 18px rgba(0,0,0,0.6); border-radius:10px; overflow:hidden; }
 table.grid th, table.grid td{ padding:10px; border-bottom:1px solid #eee; text-align:left; vertical-align: top; }
-table.grid thead th{ background:#fafafa; font-weight:700; }
+table.grid thead th{ background:#fff3; font-weight:700; }
 details summary{ cursor:pointer; }
 </style>
 
