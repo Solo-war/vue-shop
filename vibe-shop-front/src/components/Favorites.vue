@@ -40,7 +40,7 @@
 
 <script>
 import { ref } from 'vue'
-import { favorites, removeFavorite } from '../favorites.js'
+import { favorites, removeFavorite, setFavoriteSize } from '../favorites.js'
 import { addToCart } from '../cart.js'
 
 export default {
@@ -51,12 +51,19 @@ export default {
       const cur = { ...(selectedSize.value || {}) }
       cur[id] = size
       selectedSize.value = cur
+      try { setFavoriteSize(id, size) } catch {}
     }
     function getSize(id){
       const s = selectedSize.value?.[id]
-      return s || 'M'
+      if (s) return s
+      const found = (favorites?.value || []).find((x) => x.id === id)
+      return found?.size ?? null
     }
-    function add(p) { addToCart(p, { size: getSize(p.id) }) }
+    function add(p) {
+      const size = getSize(p.id)
+      if (!size) { alert('Выберите размер'); return }
+      addToCart(p, { size })
+    }
     function formatPrice(v) { return Number(v).toLocaleString('ru-RU') }
     function asset(u){
       if(!u) return u
@@ -99,7 +106,6 @@ export default {
         const banned = ['chart','size','sizing','dimension','dimensions','guide','table','diagram','scheme','schematic','measure','measures','measuring']
         const filtered = imgs.filter(src => {
           const s = String(src||'').toLowerCase()
-          // Exclude known size-chart images by numbered suffix (_3, _6)
           if(/_(3|6)\.[a-z0-9]+$/i.test(s)) return false
           for(const b of banned){ if(s.includes(b)) return false }
           return true

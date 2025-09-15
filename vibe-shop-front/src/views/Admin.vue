@@ -129,6 +129,8 @@ const auth = useAuthStore()
 const tab = ref('orders')
 const loading = ref(false)
 const error = ref('')
+// Use configurable API base: '/api' in dev (Vite proxy) or a full URL via VITE_API_BASE
+const API_BASE = import.meta.env?.VITE_API_BASE || '/api'
 const orders = ref([])
 const payments = ref([])
 const products = ref([])
@@ -148,7 +150,10 @@ function formatDate(s){
 }
 
 async function fetchJSON(url){
-  const r = await fetch(url, {
+  const full = url.startsWith('http')
+    ? url
+    : (url.startsWith('/api') ? (API_BASE + url.replace(/^\/api/, '')) : (API_BASE + url))
+  const r = await fetch(full, {
     headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : {},
   })
   if(!r.ok){
@@ -180,7 +185,7 @@ async function load(){
 }
 
 function refresh(){ load() }
-function switchTab(t){ tab.value = t; load() }
+function switchTab(t){ tab.value = (t==='orders' || t==='payments') ? t : 'orders'; load() }
 
 function onFilesChange(ev, p){
   const files = ev.target.files
@@ -195,7 +200,7 @@ async function uploadImages(p){
   try{
     const fd = new FormData()
     Array.from(pendingFiles.value[p.id]).forEach(f => fd.append('files', f))
-    const r = await fetch(`/api/admin/products/${p.id}/images?replace=1`, {
+    const r = await fetch(`${API_BASE}/admin/products/${p.id}/images?replace=1`, {
       method: 'POST',
       headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : {},
       body: fd,
@@ -215,7 +220,7 @@ async function deleteAllImages(p){
   if(!confirm('Удалить все фото для товара #' + p.id + '?')) return
   deletingId.value = p.id
   try{
-    const r = await fetch(`/api/admin/products/${p.id}/images`, {
+    const r = await fetch(`${API_BASE}/admin/products/${p.id}/images`, {
       method: 'DELETE',
       headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : {},
     })
@@ -231,7 +236,7 @@ async function deleteAllImages(p){
 async function saveProduct(p){
   savingIndex.value = p.index
   try{
-    const r = await fetch(`/api/admin/products/${p.index}`, {
+    const r = await fetch(`${API_BASE}/admin/products/${p.index}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -255,6 +260,7 @@ onMounted(load)
 .admin{ max-width: 1200px; margin: 24px auto; padding: 0 16px; }
 .tabs{ display:flex; gap:8px; align-items:center; margin-bottom:12px; }
 .tabs .right{ margin-left:auto; }
+.tabs button:nth-child(3){ display:none; }
 button{ padding:8px 12px; border-radius:8px; border:1px solid #fff; background:#111; color: #fff; cursor:pointer; }
 button.active{ background:#666; color:#fff; }
 .loading{ padding:20px; color:#666; }

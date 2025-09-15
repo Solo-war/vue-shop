@@ -17,7 +17,6 @@ const name = ref('')
 const result = ref(null)
 const error = ref(null)
 
-// Состояние для отложенного формирования чека
 const isGeneratingReceipt = ref(false)
 const receiptSecondsLeft = ref(0)
 const receiptTotalSeconds = ref(0)
@@ -25,7 +24,6 @@ const receipt = ref(null)
 let receiptTimerId = null
 let receiptCountdownId = null
 
-// Конфетти (минимально)
 const showConfetti = ref(false)
 const confettiPieces = ref([])
 let confettiHideTimerId = null
@@ -35,15 +33,15 @@ const rawNumber = computed(() => card_number.value.replace(/\s+/g, ''))
 function detectBrand(num) {
   if (/^4\d{15}$/.test(num)) return 'visa'
   if (/^\d{16}$/.test(num)) {
-    const first2 = parseInt(num.slice(0,2), 10)
-    const first4 = parseInt(num.slice(0,4), 10)
-    const first6 = parseInt(num.slice(0,6), 10)
+    const first2 = parseInt(num.slice(0, 2), 10)
+    const first4 = parseInt(num.slice(0, 4), 10)
+    const first6 = parseInt(num.slice(0, 6), 10)
     if (first2 >= 51 && first2 <= 55) return 'mastercard'
     if (first4 >= 2221 && first4 <= 2720) return 'mastercard'
     if (first6 >= 222100 && first6 <= 272099) return 'mastercard'
   }
   if (/^\d{16}$/.test(num)) {
-    const first4 = parseInt(num.slice(0,4), 10)
+    const first4 = parseInt(num.slice(0, 4), 10)
     if (first4 >= 2200 && first4 <= 2204) return 'mir'
   }
   return 'unknown'
@@ -57,21 +55,22 @@ const isCardValid = computed(() => {
 })
 
 const isExpValid = computed(() => {
-  const mm = exp_month.value; const yy = exp_year.value
+  const mm = exp_month.value
+  const yy = exp_year.value
   return /^\d{2}$/.test(mm) && /^\d{2}$/.test(yy) && Number(mm) >= 1 && Number(mm) <= 12
 })
 const isNameValid = computed(() => name.value.trim().length >= 2)
 const canPay = computed(() => isCardValid.value && isExpValid.value && isNameValid.value)
 
 watch(card_number, (val) => {
-  let digits = val.replace(/\D/g, '')
-  let parts = digits.match(/.{1,4}/g)
+  const digits = val.replace(/\D/g, '')
+  const parts = digits.match(/.{1,4}/g)
   card_number.value = parts ? parts.join(' ') : ''
 })
 
 async function pay() {
   if (!canPay.value) {
-    alert('Введите корректные данные карты (Visa/MasterCard/MIR)')
+    alert('Введите корректные данные карты (Visa/Mastercard/MIR)')
     return
   }
   try {
@@ -83,8 +82,8 @@ async function pay() {
         card_number: card_number.value.replace(/\s+/g, ''),
         exp_month: exp_month.value,
         exp_year: exp_year.value,
-        name: name.value
-      })
+        name: name.value,
+      }),
     })
     const data = await res.json()
     if (!res.ok) throw new Error(data.detail || JSON.stringify(data))
@@ -102,7 +101,6 @@ async function pay() {
 }
 
 function startReceiptGeneration() {
-  // Случайная задержка 10..60 сек
   const delaySec = Math.floor(Math.random() * (60 - 10 + 1)) + 10
   receiptSecondsLeft.value = delaySec
   receiptTotalSeconds.value = delaySec
@@ -133,7 +131,9 @@ function launchConfetti() {
   }))
   showConfetti.value = true
   if (confettiHideTimerId) clearTimeout(confettiHideTimerId)
-  confettiHideTimerId = setTimeout(() => { showConfetti.value = false }, 4500)
+  confettiHideTimerId = setTimeout(() => {
+    showConfetti.value = false
+  }, 4500)
 }
 
 function maskCard(num) {
@@ -156,8 +156,8 @@ function generateReceipt() {
     transactionId: txn,
     paidAt: ts,
     cardMasked: maskCard(rawNumber.value),
-    name: name.value.trim() || 'ПОКУПАТЕЛЬ',
-    status: 'ОПЛАЧЕНО'
+    name: name.value.trim() || 'Без имени',
+    status: 'Оплачено',
   }
 }
 
@@ -165,7 +165,7 @@ function downloadReceiptTxt() {
   if (!receipt.value) return
   const r = receipt.value
   const lines = [
-    'Vibe Shop — Чек об оплате',
+    'Vibe Shop — чек оплаты',
     '-----------------------------------',
     `Статус: ${r.status}`,
     `Оплачено: ${r.paidAt}`,
@@ -187,7 +187,13 @@ function downloadReceiptTxt() {
 }
 
 function printReceipt() {
-  window.print()
+  try {
+    document.body.classList.add('print-receipt-only')
+    window.print()
+  } finally {
+    // remove the flag shortly after print opens
+    setTimeout(() => document.body.classList.remove('print-receipt-only'), 0)
+  }
 }
 
 onBeforeUnmount(() => {
@@ -207,10 +213,10 @@ onBeforeUnmount(() => {
       </p>
       <div class="order-info">
         <template v-if="deliveryAddress">
-          �?�?�?��? �?�?�?�'���?���: <strong>{{ deliveryAddress }}</strong>
+          Адрес доставки: <strong>{{ deliveryAddress }}</strong>
         </template>
         <template v-if="etaFromCheckout">
-          <br />�?�Ő�?�?�ؐ?���? �?���'�� �?�?�?�'���?���: <strong>{{ etaFromCheckout }}</strong>
+          <br />Ожидаемая дата доставки: <strong>{{ etaFromCheckout }}</strong>
         </template>
       </div>
 
@@ -235,7 +241,7 @@ onBeforeUnmount(() => {
 
         <label>
           Имя на карте
-          <input v-model="name" placeholder="ИВАН ИВАНОВ" />
+          <input v-model="name" placeholder="Имя Фамилия" />
         </label>
 
         <button class="btn" @click="pay">Оплатить</button>
@@ -248,19 +254,19 @@ onBeforeUnmount(() => {
       <p v-if="result.transaction_id">ID транзакции: <strong>{{ result.transaction_id }}</strong></p>
 
       <p class="delivery">
-        Оценочная дата доставки:
+        Ожидаемая дата доставки:
         <strong>{{ etaFromCheckout || result.delivery_time }}</strong>
       </p>
 
       <div v-if="result.status === 'succeeded'" class="receipt-block">
         <div v-if="isGeneratingReceipt" class="receipt-progress">
-          <span>Создаём чек:</span>
+          <span>Генерация чека</span>
           <span v-if="receiptSecondsLeft"> (~{{ receiptSecondsLeft }}с)</span>
           <div class="bar"><div class="fill" :style="{ width: (receiptTotalSeconds ? (100 - Math.round((receiptSecondsLeft / receiptTotalSeconds) * 100)) : 0) + '%' }"></div></div>
         </div>
 
         <div v-else-if="receipt" class="receipt">
-          <h4>Чек об оплате</h4>
+          <h4>Чек оплаты</h4>
           <div class="line"><strong>Статус:</strong> {{ receipt.status }}</div>
           <div class="line"><strong>Оплачено:</strong> {{ receipt.paidAt }}</div>
           <div class="line"><strong>Номер заказа:</strong> #{{ receipt.orderId }}</div>
@@ -275,12 +281,11 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
-      <button class="btn-secondary" @click="$router.push('/')">На главную</button>
+      <button class="btn-secondary" @click="$router.push('/')">Назад в магазин</button>
     </div>
 
     <div v-if="error" class="error">{{ error }}</div>
 
-    <!-- Конфетти -->
     <div v-if="showConfetti" class="confetti">
       <div
         v-for="p in confettiPieces"
@@ -293,7 +298,7 @@ onBeforeUnmount(() => {
           '--hue': p.hue,
           '--w': p.w + 'px',
           '--h': p.h + 'px',
-          '--spinDir': p.spinDir
+          '--spinDir': p.spinDir,
         }"
       >
         <div class="confetti-piece-inner"></div>
@@ -321,10 +326,7 @@ onBeforeUnmount(() => {
 
 input { width: 100%; margin-top: 4px; }
 
-.row {
-  display: flex;
-  gap: 12px;
-}
+.row { display: flex; gap: 12px; }
 
 .btn { width: 100%; margin-top: 10px; }
 
@@ -334,7 +336,6 @@ input { width: 100%; margin-top: 4px; }
 
 .error { margin-top: 15px; color: var(--danger); text-align: center; font-weight: 600; }
 
-/* Чек */
 .receipt-block { margin-top: 12px; }
 .receipt-progress { color: #374151; font-size: 14px; }
 .receipt-progress .bar { margin-top: 8px; height: 8px; background: rgba(255,255,255,0.08); border-radius: 999px; overflow: hidden; }
@@ -344,39 +345,10 @@ input { width: 100%; margin-top: 4px; }
 .receipt .line { margin: 4px 0; }
 .receipt-actions { display: flex; gap: 8px; margin-top: 10px; }
 
-/* Конфетти */
-.confetti {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-  z-index: 9999;
-}
-.confetti-piece {
-  position: absolute;
-  top: -12px;
-  left: 0;
-  width: var(--w);
-  height: var(--h);
-  transform: translateY(-100vh);
-  animation: confetti-fall var(--dur) cubic-bezier(.2,.7,.2,1) var(--delay) forwards;
-}
-.confetti-piece-inner {
-  width: 100%;
-  height: 100%;
-  background: hsl(var(--hue), 90%, 60%);
-  border-radius: 2px;
-  display: block;
-  transform-origin: center;
-  animation: confetti-spin var(--dur) linear var(--delay) forwards;
-}
+.confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 9999; }
+.confetti-piece { position: absolute; top: -12px; left: 0; width: var(--w); height: var(--h); transform: translateY(-100vh); animation: confetti-fall var(--dur) cubic-bezier(.2,.7,.2,1) var(--delay) forwards; }
+.confetti-piece-inner { width: 100%; height: 100%; background: hsl(var(--hue), 90%, 60%); border-radius: 2px; display: block; transform-origin: center; animation: confetti-spin var(--dur) linear var(--delay) forwards; }
 
-@keyframes confetti-fall {
-  0%   { transform: translateY(-100vh); opacity: 0; }
-  10%  { opacity: 1; }
-  100% { transform: translateY(105vh); opacity: 1; }
-}
-@keyframes confetti-spin {
-  to { transform: rotate(calc(720deg * var(--spinDir))); }
-}
+@keyframes confetti-fall { 0% { transform: translateY(-100vh); opacity: 0; } 10% { opacity: 1; } 100% { transform: translateY(105vh); opacity: 1; } }
+@keyframes confetti-spin { to { transform: rotate(calc(720deg * var(--spinDir))); } }
 </style>

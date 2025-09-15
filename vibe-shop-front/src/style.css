@@ -254,3 +254,44 @@ label { color: var(--text-2); font-size: 14px; }
 }
 .btn-primary:hover::before { animation: sheen 650ms ease forwards; opacity: 1; }
 @keyframes sheen { to { left: 150%; } }
+
+/* Print styles */
+@media print {
+  /* Hide global chrome and interactive UI */
+  header, nav, footer,
+  .site-header,
+  .confetti,
+  .btn,
+  .btn-secondary,
+  .icon,
+  .search,
+  .logout,
+  .profile,
+  .with-badge,
+  .chip {
+    display: none !important;
+  }
+
+  /* Make receipt look clean on paper */
+  .receipt {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: #000 !important;
+    -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+  }
+
+  /* Print only the receipt when body has a special flag */
+  body.print-receipt-only * { visibility: hidden !important; }
+  body.print-receipt-only .receipt,
+  body.print-receipt-only .receipt * { visibility: visible !important; }
+  body.print-receipt-only .receipt {
+    position: absolute !important;
+    top: 0; left: 0; right: 0;
+    width: 100%;
+  }
+
+  /* Tighter page margins (cannot disable browser headers/footers) */
+  @page { margin: 12mm; }
+}

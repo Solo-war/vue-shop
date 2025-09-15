@@ -31,7 +31,7 @@ function remove(item){ removeFromCart(item.id, item.size ?? null) }
 
     <div v-else>
       <div class="basket-items">
-        <div class="basket-item card" v-for="item in cart" :key="item.id">
+        <div class="basket-item card" v-for="item in cart" :key="item.id + ':' + (item.size || '')">
           <img :src="item.image" alt="" class="thumb" />
           <div class="info">
             <div class="title">{{ item.name }}</div>

@@ -10,6 +10,7 @@ export default {
     const products = ref([])
     const loading = ref(true)
     const route = useRoute()
+    const selectedImage = ref({})
 
     onMounted(async () => {
       function mapProducts(data){
@@ -131,7 +132,6 @@ export default {
         const banned = ['chart','size','sizing','dimension','dimensions','guide','table','diagram','scheme','schematic','measure','measures','measuring']
         const filtered = imgs.filter(src => {
           const s = String(src||'').toLowerCase()
-          // Exclude known size-chart images by numbered suffix (_3, _6)
           if(/_(3|6)\.[a-z0-9]+$/i.test(s)) return false
           for(const b of banned){ if(s.includes(b)) return false }
           return true
@@ -143,7 +143,37 @@ export default {
       }catch{ return p?.image }
     }
 
-    return { products, loading, add, formatPrice, toggleFavorite, isFavorite, toggleCompare, isCompared, filteredProducts, asset, imgFallback, gridThumb }
+    // Thumbnails to show under the main image (max 5, exclude size charts)
+    function gridImages(p){
+      try {
+        const imgs = Array.isArray(p?.images) && p.images.length ? p.images.slice() : (p?.image ? [p.image] : [])
+        const banned = ['chart','size','sizing','dimension','dimensions','guide','table','diagram','scheme','schematic','measure','measures','measuring']
+        const filtered = imgs.filter(src => {
+          const s = String(src||'').toLowerCase()
+          for(const b of banned){ if(s.includes(b)) return false }
+          return true
+        })
+        const list = filtered.length ? filtered : imgs
+        return list.slice(0, 5)
+      } catch { return [] }
+    }
+
+    function mainImage(p, i){
+      try{
+        const cur = selectedImage.value?.[p.id]
+        return cur || gridThumb(p, i)
+      }catch{ return gridThumb(p, i) }
+    }
+
+    function pickImage(p, src){
+      try{
+        const map = { ...(selectedImage.value || {}) }
+        map[p.id] = src
+        selectedImage.value = map
+      }catch{}
+    }
+
+    return { products, loading, add, formatPrice, toggleFavorite, isFavorite, toggleCompare, isCompared, filteredProducts, asset, imgFallback, gridThumb, gridImages, mainImage, pickImage, selectedImage }
   },
 }
 </script>
@@ -160,8 +190,8 @@ export default {
         <div class="thumb-wrapper">
           <router-link :to="`/product/${p.slug || p.id}`" aria-label="Перейти к товару">
             <img
-              :src="asset(gridThumb(p, i))"
-              @error="imgFallback($event, gridThumb(p, i))"
+              :src="asset(mainImage(p, i))"
+              @error="imgFallback($event, mainImage(p, i))"
               alt=""
               class="thumb"
             />
@@ -190,6 +220,20 @@ export default {
               <path d="M12 21l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 6 4 4 6.5 4c1.74 0 3.41 1.01 4.22 2.09C11.09 5.01 12.76 4 14.5 4 17 4 19 6 19 8.5c0 3.78-3.4 6.86-8.55 11.18z" />
             </svg>
           </button>
+        </div>
+
+        <div class="thumbs-row" v-if="gridImages(p).length > 1">
+          <img
+            v-for="t in gridImages(p)"
+            :key="t"
+            :src="asset(t)"
+            @error="imgFallback($event, t)"
+            class="thumb-mini"
+            :class="{ active: selectedImage[p.id] ? selectedImage[p.id] === t : gridThumb(p, i) === t }"
+            alt=""
+            @click="pickImage(p, t)"
+            @mouseover="pickImage(p, t)"
+          />
         </div>
 
         <div class="title">
@@ -227,6 +271,9 @@ export default {
   border-radius: 12px;
   background: rgba(255,255,255,0.04);
 }
+.thumbs-row { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+.thumb-mini { width: 46px; height: 46px; object-fit: cover; border-radius: 8px; opacity: .85; border: 1px solid rgba(255,255,255,0.15); cursor: pointer; background: rgba(255,255,255,0.04); }
+.thumb-mini.active { outline: 2px solid var(--primary); opacity: 1; }
 .title { font-weight: 700; margin-top: 10px; }
 .desc { color: var(--text-2); font-size: 13px; min-height: 30px; margin-top: 6px; }
 .row { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }

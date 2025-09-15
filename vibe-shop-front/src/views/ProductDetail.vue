@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { addToCart } from '@/cart.js'
-import { toggleFavorite, isFavorite } from '@/favorites.js'
+import { toggleFavorite as toggleFavoriteRaw, isFavorite } from '@/favorites.js'
 import { toggleCompare, isCompared } from '@/compare.js'
 
 const route = useRoute()
@@ -13,6 +13,17 @@ const error = ref('')
 const products = ref([])
 const product = ref(null)
 const activeIdx = ref(0)
+const sizeOptions = ['S','M','L','XL','2XL']
+const selectedSize = ref(null)
+function toggleFavorite(p){
+  if (!p) return
+  if (!isFavorite(p.id)) {
+    if (!selectedSize.value) { alert('Выберите размер'); return }
+    toggleFavoriteRaw(p, { size: selectedSize.value })
+  } else {
+    toggleFavoriteRaw(p)
+  }
+}
 
 function fmt(n){ return Number(n||0).toLocaleString('ru-RU') }
 function asset(u){
@@ -136,7 +147,12 @@ async function load(){
   }
 }
 
-function add(){ if(product.value) addToCart(product.value) }
+function add(){
+  if(!product.value) return
+  if(!selectedSize.value){ alert('Выберите размер'); return }
+  addToCart(product.value, { size: selectedSize.value })
+}
+function pickSize(s){ selectedSize.value = s }
 
 onMounted(load)
 
@@ -183,6 +199,17 @@ function goBack(){ router.back() }
         <h1 class="title">{{ product.name }}</h1>
         <div class="price">{{ fmt(product.price) }} ₽</div>
         <p class="desc">{{ product.description }}</p>
+
+        <div class="sizes">
+          <span class="sizes-label">Размер:</span>
+          <button
+            v-for="s in sizeOptions"
+            :key="s"
+            class="size-btn"
+            :class="{ active: selectedSize === s }"
+            @click="pickSize(s)"
+          >{{ s }}</button>
+        </div>
 
         <div class="actions">
           <button class="btn btn-primary" @click="add">В корзину</button>
@@ -231,6 +258,11 @@ function goBack(){ router.back() }
 .actions{ margin-top: 16px; display:flex; gap:10px; align-items: center; }
 .icon{ width: 40px; height: 40px; border-radius: 10px; border:1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06); color:#fff; cursor:pointer; padding: 5px;}
 .icon.active{ background: rgba(255,0,0,0.15); border-color: rgba(255,0,0,0.3); }
+
+.sizes{ display:flex; align-items:center; gap:8px; margin-top:12px; flex-wrap: wrap; }
+.sizes-label{ color: var(--text-2); font-size: 12px; }
+.size-btn{ cursor:pointer; padding:6px 10px; border-radius:10px; border:1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); color: var(--text-1) }
+.size-btn.active{ background: var(--primary); color:#fff; border-color: var(--primary); }
 
 @media (max-width: 900px){
   .grid{ grid-template-columns: 1fr; }
