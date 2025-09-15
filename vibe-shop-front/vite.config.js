@@ -20,8 +20,8 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
-      // Serve product images from backend in dev
-      '/images': {
+      // Serve product images from backend in dev (be specific to avoid clashing with frontend public/images)
+      '/images/tees': {
         target: 'http://127.0.0.1:8000',
         changeOrigin: true,
       },

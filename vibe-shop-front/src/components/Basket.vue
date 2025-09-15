@@ -7,16 +7,20 @@ function formatPrice(v) { return Number(v).toLocaleString('ru-RU') }
 
 const total = computed(() => cart.value.reduce((sum, item) => sum + item.price * item.qty, 0))
 
-function increaseQty(id) {
-  const found = cart.value.find((item) => item.id === id)
+function increaseQty(id, size = null) {
+  const found = cart.value.find((item) => item.id === id && ((item.size ?? null) === (size ?? null)))
   if (found) found.qty++
 }
 
-function decreaseQty(id) {
-  const found = cart.value.find((item) => item.id === id)
+function decreaseQty(id, size = null) {
+  const found = cart.value.find((item) => item.id === id && ((item.size ?? null) === (size ?? null)))
   if (found && found.qty > 1) found.qty--
-  else removeFromCart(id)
+  else removeFromCart(id, size)
 }
+
+function inc(item){ increaseQty(item.id, item.size ?? null) }
+function dec(item){ decreaseQty(item.id, item.size ?? null) }
+function remove(item){ removeFromCart(item.id, item.size ?? null) }
 </script>
 
 <template>
@@ -32,13 +36,14 @@ function decreaseQty(id) {
           <div class="info">
             <div class="title">{{ item.name }}</div>
             <div class="price">{{ formatPrice(item.price) }} ₽</div>
+            <div class="muted" v-if="item.size">Размер: {{ item.size }}</div>
             <div class="qty">
-              <button class="qty-btn" @click="decreaseQty(item.id)">−</button>
+              <button class="qty-btn" @click="dec(item)">−</button>
               {{ item.qty }}
-              <button class="qty-btn" @click="increaseQty(item.id)">+</button>
+              <button class="qty-btn" @click="inc(item)">+</button>
             </div>
           </div>
-          <button class="btn btn-secondary" @click="removeFromCart(item.id)">Удалить</button>
+          <button class="btn btn-secondary" @click="remove(item)">Удалить</button>
         </div>
       </div>
 

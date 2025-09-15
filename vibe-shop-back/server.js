@@ -12,12 +12,12 @@ function buildProductsFromStaticTees() {
     const arr = JSON.parse(raw);
     if (!Array.isArray(arr) || !arr.length) return null;
 
-    // Each item may have a single Unsplash URL; expand to 6 images per product
+    // Each item may have a single Unsplash URL; expand to 5 images per product
     const products = arr.map((it, idx) => {
       const base = String((it.images && it.images[0]) || it.image || "");
       const hasQuery = /\?/.test(base);
       const paramJoin = hasQuery ? "&" : "?";
-      const images = Array.from({ length: 6 }, (_, i) => `${base}${paramJoin}sig=${i + 1}`);
+      const images = Array.from({ length: 5 }, (_, i) => `${base}${paramJoin}sig=${i + 1}`);
       return {
         id: it.id ?? idx + 1,
         slug: it.slug || undefined,
@@ -74,18 +74,25 @@ function buildProductsFromImages() {
       groups.get(key).push({ idx, name });
     }
 
-    // Create products for groups that have at least 6 images
+    // Create products for groups that have at least 5 images
     const keys = Array.from(groups.keys()).sort((a, b) => Number(a) - Number(b));
     const products = [];
     let seq = 1;
     for (const key of keys) {
-      const arr = groups
+      const all = groups
         .get(key)
-        .sort((a, b) => a.idx - b.idx)
-        .filter((x) => x.idx >= 1 && x.idx <= 6)
-        .slice(0, 6);
-      if (arr.length < 6) continue; // enforce 6 photos per product
-      const images = arr.map((x) => `/images/tees/images/${x.name}`);
+        .sort((a, b) => a.idx - b.idx);
+
+      // Heuristic: treat index 6 (or filenames containing chart/size keywords) as size-chart
+      const isChart = (n) => n.idx === 6
+        || /(chart|size|sizing|dimension|guide|table|таблиц|размер)/i.test(n.name || '');
+      const chart = all.find(isChart) || null;
+      const nonChart = all.filter((x) => x !== chart && x.idx >= 1);
+      const take = chart ? 4 : 5; // keep total at 5
+      const picked = nonChart.filter((x) => x.idx >= 1).slice(0, take);
+      if (chart) picked.push(chart);
+      if (picked.length < 5) continue; // enforce 5 photos per product
+      const images = picked.map((x) => `/images/tees/images/${x.name}`);
       const name = `Футболка ${key}`;
       const slug = `tee-${key}`;
       const price = 2990 + ((seq - 1) % 10) * 100; // simple varied pricing
@@ -157,6 +164,51 @@ app.use(
     path.join(__dirname, "..", "vibe-shop-front", "public", "images")
   )
 );
+
+// Fallback proxy: forward unknown /api/* routes to FastAPI (127.0.0.1:8000)
+// This lets the frontend hit admin/auth/reviews endpoints even when served via this Node server.
+app.use(async (req, res, next) => {
+  try {
+    if (!req.url.startsWith('/api/')) return next();
+    // Let our local product handlers work; proxy everything else
+    if (req.method === 'GET' && (req.path === '/api/products' || /^\/api\/products\//.test(req.path))) {
+      return next();
+    }
+    const targetHost = '127.0.0.1';
+    const targetPort = 8000;
+    const isTLS = false;
+    const http = require(isTLS ? 'https' : 'http');
+    const url = require('url');
+    const outPath = req.url.replace(/^\/api/, '');
+    const opts = {
+      host: targetHost,
+      port: targetPort,
+      method: req.method,
+      path: outPath,
+      headers: { ...req.headers, host: `${targetHost}:${targetPort}` },
+    };
+
+    const proxyReq = http.request(opts, (proxyRes) => {
+      res.status(proxyRes.statusCode || 502);
+      Object.entries(proxyRes.headers || {}).forEach(([k, v]) => {
+        if (typeof v !== 'undefined') res.setHeader(k, v);
+      });
+      proxyRes.pipe(res);
+    });
+    proxyReq.on('error', (err) => {
+      console.error('Proxy error:', err);
+      if (!res.headersSent) res.status(502).json({ detail: 'Bad Gateway' });
+    });
+    if (req.readable) {
+      req.pipe(proxyReq);
+    } else {
+      proxyReq.end();
+    }
+  } catch (e) {
+    console.error('Proxy fallback failed:', e);
+    next();
+  }
+});
 
 const port = process.env.PORT || 3000;
 app.listen(port, () =>

@@ -13,17 +13,20 @@ watch(
   { deep: true }
 )
 
-export function addToCart(product) {
-  const found = cart.value.find((item) => item.id === product.id)
+export function addToCart(product, options = {}) {
+  const size = options.size ?? product.size ?? null
+  const found = cart.value.find((item) => item.id === product.id && ((item.size ?? null) === (size ?? null)))
   if (found) {
     found.qty += 1
   } else {
-    cart.value.push({ ...product, qty: 1 })
+    const toAdd = { ...product, qty: 1 }
+    if (size) toAdd.size = size
+    cart.value.push(toAdd)
   }
 }
 
-export function removeFromCart(id) {
-  cart.value = cart.value.filter((item) => item.id !== id)
+export function removeFromCart(id, size = null) {
+  cart.value = cart.value.filter((item) => !(item.id === id && ((item.size ?? null) === (size ?? null))))
 }
 
 export function clearCart() {
@@ -34,14 +37,16 @@ export function clearCart() {
 function mergeCarts(primary, secondary) {
   const map = new Map()
   for (const it of Array.isArray(primary) ? primary : []) {
-    map.set(it.id, { ...it })
+    const key = `${it.id}::${it.size ?? ''}`
+    map.set(key, { ...it })
   }
   for (const it of Array.isArray(secondary) ? secondary : []) {
-    const cur = map.get(it.id)
+    const key = `${it.id}::${it.size ?? ''}`
+    const cur = map.get(key)
     if (cur) {
       cur.qty = (cur.qty ?? 1) + (it.qty ?? 1)
     } else {
-      map.set(it.id, { ...it })
+      map.set(key, { ...it })
     }
   }
   return Array.from(map.values())

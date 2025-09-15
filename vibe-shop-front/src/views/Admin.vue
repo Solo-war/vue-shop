@@ -1,10 +1,11 @@
 <template>
   <div class="admin">
-    <h1>Админ‑панель</h1>
+    <h1>Админ-панель</h1>
 
     <div class="tabs">
-      <button :class="{active: tab==='orders'}" @click="tab='orders'">Заказы</button>
-      <button :class="{active: tab==='payments'}" @click="tab='payments'">Платежи</button>
+      <button :class="{active: tab==='orders'}" @click="switchTab('orders')">Заказы</button>
+      <button :class="{active: tab==='payments'}" @click="switchTab('payments')">Платежи</button>
+      <button :class="{active: tab==='products'}" @click="switchTab('products')">Товары</button>
       <button class="right" @click="refresh">Обновить</button>
     </div>
 
@@ -15,11 +16,11 @@
       <table v-else class="grid">
         <thead>
           <tr>
-            <th>Заказ</th>
+            <th>Номер</th>
             <th>Адрес</th>
             <th>Сумма</th>
             <th>Создан</th>
-            <th>Товары</th>
+            <th>Состав</th>
           </tr>
         </thead>
         <tbody>
@@ -33,7 +34,7 @@
             <td>{{ formatDate(o.created_at) }}</td>
             <td>
               <details>
-                <summary>{{ (o.items?.length||0) }} тов.</summary>
+                <summary>{{ (o.items?.length||0) }} шт.</summary>
                 <ul>
                   <li v-for="(it, i) in (o.items||[])" :key="i">
                     #{{ it.id }}: {{ it.name }} — {{ it.qty }} × {{ formatPrice(it.price) }} ₽
@@ -46,12 +47,12 @@
       </table>
     </div>
 
-    <div v-else>
+    <div v-else-if="tab==='payments'">
       <div v-if="loading" class="loading">Загрузка платежей...</div>
       <table v-else class="grid">
         <thead>
           <tr>
-            <th>Заказ</th>
+            <th>Номер</th>
             <th>Статус</th>
             <th>Сумма</th>
             <th>Карта</th>
@@ -69,6 +70,54 @@
         </tbody>
       </table>
     </div>
+
+    <div v-else>
+      <div v-if="loading" class="loading">Загрузка товаров...</div>
+      <div v-else>
+        <table class="grid">
+          <thead>
+            <tr>
+              <th>#ID</th>
+              <th>Название</th>
+              <th>Цена</th>
+              <th>Описание</th>
+              <th>Фотографии</th>
+              <th>Действия</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="p in products" :key="p.id + ':' + p.index">
+              <td>
+                <div><b>ID:</b> {{ p.id }}</div>
+                <div><small>index: {{ p.index }}</small></div>
+              </td>
+              <td>
+                <input v-model="p.name" class="input" />
+              </td>
+              <td>
+                <input v-model.number="p.price" type="number" min="0" step="1" class="input small" />
+              </td>
+              <td>
+                <textarea v-model="p.description" class="input" rows="3"></textarea>
+              </td>
+              <td class="images">
+                <div class="thumbs">
+                  <img v-for="(img,i) in (p.images||[])" :key="i" :src="img" alt="" />
+                </div>
+                <div class="uploader">
+                  <input type="file" multiple accept=".jpg,.jpeg,.png,.webp" @change="onFilesChange($event, p)" />
+                  <button @click="uploadImages(p)" :disabled="!pendingFiles[p.id] || uploadingId===p.id">{{ uploadingId===p.id ? 'Загрузка...' : 'Заменить фото' }}</button>
+                  <button class="danger" @click="deleteAllImages(p)" :disabled="deletingId===p.id">Удалить все</button>
+                </div>
+              </td>
+              <td>
+                <button @click="saveProduct(p)" :disabled="savingIndex===p.index">{{ savingIndex===p.index ? 'Сохранение...' : 'Сохранить' }}</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -82,6 +131,11 @@ const loading = ref(false)
 const error = ref('')
 const orders = ref([])
 const payments = ref([])
+const products = ref([])
+const pendingFiles = ref({}) // { [id]: FileList }
+const uploadingId = ref(null)
+const deletingId = ref(null)
+const savingIndex = ref(null)
 
 function formatPrice(v){
   const n = Number(v||0)
@@ -108,20 +162,91 @@ async function load(){
   loading.value = true
   error.value = ''
   try{
-    const [o,p] = await Promise.all([
-      fetchJSON('/api/admin/orders'),
-      fetchJSON('/api/admin/payments'),
-    ])
-    orders.value = Array.isArray(o) ? o : []
-    payments.value = Array.isArray(p) ? p : []
+    if(tab.value==='orders'){
+      const o = await fetchJSON('/api/admin/orders')
+      orders.value = Array.isArray(o) ? o : []
+    } else if(tab.value==='payments'){
+      const p = await fetchJSON('/api/admin/payments')
+      payments.value = Array.isArray(p) ? p : []
+    } else if(tab.value==='products'){
+      const list = await fetchJSON('/api/admin/products')
+      products.value = Array.isArray(list) ? list : []
+    }
   }catch(e){
-    error.value = 'Не удалось загрузить данные: ' + (e?.message || e)
+    error.value = 'Ошибка загрузки: ' + (e?.message || e)
   }finally{
     loading.value = false
   }
 }
 
 function refresh(){ load() }
+function switchTab(t){ tab.value = t; load() }
+
+function onFilesChange(ev, p){
+  const files = ev.target.files
+  if(files && files.length){
+    pendingFiles.value = { ...pendingFiles.value, [p.id]: files }
+  }
+}
+
+async function uploadImages(p){
+  if(!pendingFiles.value[p.id] || !p.id){ return }
+  uploadingId.value = p.id
+  try{
+    const fd = new FormData()
+    Array.from(pendingFiles.value[p.id]).forEach(f => fd.append('files', f))
+    const r = await fetch(`/api/admin/products/${p.id}/images?replace=1`, {
+      method: 'POST',
+      headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : {},
+      body: fd,
+    })
+    if(!r.ok){ throw new Error(await r.text()) }
+    await load()
+    pendingFiles.value = { ...pendingFiles.value, [p.id]: null }
+  }catch(e){
+    alert('Ошибка загрузки: ' + (e?.message||e))
+  }finally{
+    uploadingId.value = null
+  }
+}
+
+async function deleteAllImages(p){
+  if(!p.id) return
+  if(!confirm('Удалить все фото для товара #' + p.id + '?')) return
+  deletingId.value = p.id
+  try{
+    const r = await fetch(`/api/admin/products/${p.id}/images`, {
+      method: 'DELETE',
+      headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : {},
+    })
+    if(!r.ok){ throw new Error(await r.text()) }
+    await load()
+  }catch(e){
+    alert('Ошибка удаления: ' + (e?.message||e))
+  }finally{
+    deletingId.value = null
+  }
+}
+
+async function saveProduct(p){
+  savingIndex.value = p.index
+  try{
+    const r = await fetch(`/api/admin/products/${p.index}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(auth.token ? { Authorization: `Bearer ${auth.token}` } : {}),
+      },
+      body: JSON.stringify({ name: p.name, price: p.price, description: p.description }),
+    })
+    if(!r.ok){ throw new Error(await r.text()) }
+    await load()
+  }catch(e){
+    alert('Ошибка сохранения: ' + (e?.message||e))
+  }finally{
+    savingIndex.value = null
+  }
+}
 
 onMounted(load)
 </script>
@@ -138,5 +263,10 @@ table.grid{ width:100%; border-collapse: collapse; background:#fff1; box-shadow:
 table.grid th, table.grid td{ padding:10px; border-bottom:1px solid #eee; text-align:left; vertical-align: top; }
 table.grid thead th{ background:#fff3; font-weight:700; }
 details summary{ cursor:pointer; }
+.input{ width:100%; padding:6px 8px; border-radius:6px; border:1px solid #ddd; background:#fff; color:#000; box-sizing:border-box; }
+.input.small{ width: 120px; }
+.images .thumbs{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px; }
+.images img{ width:56px; height:56px; object-fit:cover; border-radius:6px; border:1px solid #ccc; background:#fff; }
+.images .uploader{ display:flex; gap:6px; align-items:center; }
+.danger{ background:#b30000; border-color:#b30000; }
 </style>
-

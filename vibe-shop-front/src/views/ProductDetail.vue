@@ -209,19 +209,16 @@ function goBack(){ router.back() }
   background: rgba(255,255,255,0.04);
   border-radius: 16px;
   overflow: hidden;
-  width: 100%;
-  max-width: 645.6px;
-  /* Prevent too small or too large viewport while adapting to image */
-  height: clamp(340px, 50vh, 720px);
+  /* Portrait viewport */
+  width: min(100%, 540px);
+  aspect-ratio: 3 / 4; /* width / height => portrait */
   display: grid;
   place-items: center;
 }
 .gallery .main img{
-  max-width: 100%;
-  max-height: 100%;
-  width: auto;
-  height: auto;
-  object-fit: contain;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* fill portrait area */
   display: block;
 }
 .thumbs{ display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 10px; width: 100%; max-width: 645.6px; }
@@ -237,7 +234,6 @@ function goBack(){ router.back() }
 
 @media (max-width: 900px){
   .grid{ grid-template-columns: 1fr; }
-  /* On small screens keep a bit shorter but still constrained */
-  .gallery .main{ height: clamp(260px, 52vh, 560px); }
+  /* On small screens keep portrait ratio; width rules above already scale */
 }
 </style>

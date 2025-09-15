@@ -125,25 +125,7 @@ export default {
       )
     })
 
-    function gridThumb(p, i){
-      try{
-        const imgs = Array.isArray(p?.images) && p.images.length ? p.images.slice() : (p?.image ? [p.image] : [])
-        const banned = ['chart','size','sizing','dimension','dimensions','guide','table','diagram','scheme','schematic','measure','measures','measuring']
-        const filtered = imgs.filter(src => {
-          const s = String(src||'').toLowerCase()
-          // Exclude known size-chart images by numbered suffix (_3, _6)
-          if(/_(3|6)\.[a-z0-9]+$/i.test(s)) return false
-          for(const b of banned){ if(s.includes(b)) return false }
-          return true
-        })
-        const list = filtered.length ? filtered : imgs
-        if(!list.length) return p?.image
-        const idx = Number.isInteger(i) ? (i % list.length) : 0
-        return list[idx]
-      }catch{ return p?.image }
-    }
-
-    return { products, loading, add, formatPrice, toggleFavorite, isFavorite, toggleCompare, isCompared, filteredProducts, asset, imgFallback, gridThumb }
+    return { products, loading, add, formatPrice, toggleFavorite, isFavorite, toggleCompare, isCompared, filteredProducts, asset, imgFallback }
   },
 }
 </script>
@@ -160,8 +142,8 @@ export default {
         <div class="thumb-wrapper">
           <router-link :to="`/product/${p.slug || p.id}`" aria-label="Перейти к товару">
             <img
-              :src="asset(gridThumb(p, i))"
-              @error="imgFallback($event, gridThumb(p, i))"
+              :src="asset((Array.isArray(p.images) && p.images.length) ? p.images[i % p.images.length] : p.image)"
+              @error="imgFallback($event, (Array.isArray(p.images) && p.images.length) ? p.images[i % p.images.length] : p.image)"
               alt=""
               class="thumb"
             />
@@ -211,14 +193,10 @@ export default {
 .product-card { display: flex; flex-direction: column; }
 .thumb-wrapper {
   position: relative;
-  /* Keep a consistent image box that adapts to width */
-  aspect-ratio: 4 / 5;
-  /* Fallback max/min heights for legacy browsers */
-  min-height: 180px;
-  max-height: 360px;
+  /* Prevent tiny or huge images; scale with viewport */
+  height: clamp(180px, 22vw, 320px);
   display: grid;
   place-items: center;
-  overflow: hidden;
 }
 .thumb {
   width: 100%;
@@ -227,7 +205,7 @@ export default {
   border-radius: 12px;
   background: rgba(255,255,255,0.04);
 }
-.title { font-weight: 700; margin-top: 10px; }
+.title { font-weight: 700; }
 .desc { color: var(--text-2); font-size: 13px; min-height: 30px; margin-top: 6px; }
 .row { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
 .price { font-weight: 800; }
