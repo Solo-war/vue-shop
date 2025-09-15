@@ -138,4 +138,17 @@ export default {
 .sizes-label { color: var(--text-2); font-size: 12px; }
 .size-btn { cursor: pointer; padding: 6px 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); color: var(--text-1) }
 .size-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+/* Mobile responsiveness */
+@media (max-width: 640px) {
+  .item { flex-direction: column; }
+  .thumb {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+  }
+  .desc { padding-top: 10px; }
+  .row { flex-direction: column; align-items: stretch; gap: 10px; }
+  .actions { justify-content: space-between; }
+}
 </style>

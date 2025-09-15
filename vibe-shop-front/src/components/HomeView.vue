@@ -252,7 +252,8 @@ export default {
 
 <style scoped>
 /* Keep product thumbnails responsive and bounded */
-.product-card { display: flex; flex-direction: column; }
+.container h1 { font-family: inherit; font-weight: 700; }
+.product-card { display: flex; flex-direction: column; min-width: 0; }
 .thumb-wrapper {
   position: relative;
   /* Keep a consistent image box that adapts to width */
@@ -275,8 +276,8 @@ export default {
 .thumb-mini { width: 46px; height: 46px; object-fit: cover; border-radius: 8px; opacity: .85; border: 1px solid rgba(255,255,255,0.15); cursor: pointer; background: rgba(255,255,255,0.04); }
 .thumb-mini.active { outline: 2px solid var(--primary); opacity: 1; }
 .title { font-weight: 700; margin-top: 10px; }
-.desc { color: var(--text-2); font-size: 13px; min-height: 30px; margin-top: 6px; }
-.row { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
+.desc { color: var(--text-2); font-size: 13px; min-height: 30px; margin-top: 6px; word-break: break-word; }
+.row { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; min-width: 0; gap: 10px; }
 .price { font-weight: 800; }
 .empty { padding: 40px; text-align: center; }
 
@@ -294,4 +295,12 @@ export default {
 }
 .favorite-btn:hover { transform: scale(1.05); }
 .favorite-btn.active svg { fill: red; stroke: red; }
+
+/* Mobile tweaks for the catalog cards */
+@media (max-width: 640px) {
+  .thumb-wrapper { min-height: 160px; }
+  .thumb-mini { width: 38px; height: 38px; }
+  .row { flex-direction: column; align-items: stretch; gap: 10px; }
+  .compare-btn, .favorite-btn { padding: 4px; border-radius: 10px; }
+}
 </style>

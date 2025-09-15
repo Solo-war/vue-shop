@@ -64,7 +64,14 @@ function remove(item){ removeFromCart(item.id, item.size ?? null) }
 .info { flex: 1; }
 .qty { display: inline-flex; gap: 8px; align-items: center; margin-top: 6px; }
 .qty-btn { cursor: pointer; padding: 6px 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); color: var(--text-1) }
-.actions { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
+.actions { display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 20px; }
 .total { margin-top: 20px; font-size: 18px; }
 .empty { text-align: center; padding: 40px; }
+
+/* Mobile responsiveness */
+@media (max-width: 640px) {
+  .basket-item { align-items: flex-start; flex-wrap: wrap; }
+  .thumb { width: 100%; height: auto; aspect-ratio: 4 / 3; }
+  .actions { flex-direction: column; gap: 10px; align-items: center; }
+}
 </style>

@@ -251,4 +251,31 @@ function clearSearch() { search.value = ''; updateRouteQuery('') }
   background: rgba(255,255,255,0.06);
   border: 1px solid rgba(255,255,255,0.12);
 }
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .inner {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .logo { width: 36px; height: 36px; border-radius: 10px; }
+  .brand .subtitle { display: none; }
+  .right { flex: 1 1 auto; justify-content: flex-end; gap: 6px; }
+  .icon { padding: 8px; border-radius: 8px; }
+  .profile { display: none; }
+  .auth { display: none; }
+  /* Make the search take a full row */
+  .search {
+    order: 3;
+    flex: 1 1 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 420px) {
+  .inner { padding: 8px 12px; }
+  .icon { padding: 6px; border-radius: 8px; background: transparent; }
+  .logo { width: 30px; height: 30px; }
+}
 </style>
