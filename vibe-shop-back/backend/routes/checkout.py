@@ -7,6 +7,7 @@ import sqlite3
 import datetime
 import json
 import random
+import asyncio
 
 router = APIRouter()
 
@@ -48,8 +49,13 @@ def checkout(req: CheckoutRequest, authorization: str | None = Header(default=No
     return CheckoutResponse(order_id=order_id, amount=amount, eta_days=days, eta_date=eta_date, distance_km=distance)
 
 
+    
 @router.post("/pay-mock", response_model=PayResponse)
-def pay_mock(req: PayRequest):
+async def pay_mock(req: PayRequest):
+    # задержка от 5 до 10 секунд
+    delay = random.randint(10, 15)
+    await asyncio.sleep(delay)
+
     card = req.card_number.replace(" ", "")
     if card == "4000000000009995":
         brand = "visa_decline"
@@ -61,7 +67,6 @@ def pay_mock(req: PayRequest):
         if brand == 'unknown' or (not card.isdigit()) or len(card) != 16:
             raise HTTPException(status_code=400, detail="Номер карты некорректен")
         status = "succeeded"
-        message = "Оплата прошла успешно"
         txn = f"TXN-{random.randint(1000000,9999999)}"
 
     last4 = card[-4:]
@@ -97,4 +102,5 @@ def pay_mock(req: PayRequest):
         pass
     days, delivery, _ = calc_eta(items_for_calc, geo_lat, geo_lon)
     return PayResponse(status=status, message=message, transaction_id=txn, delivery_time=delivery)
+
 
