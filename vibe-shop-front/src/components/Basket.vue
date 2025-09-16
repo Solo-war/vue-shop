@@ -82,6 +82,7 @@ function remove(item){ removeFromCart(item.id, item.size ?? null) }
 </template>
 
 <style scoped>
+
 .basket-item { display: flex; align-items: center; gap: 12px; padding: 12px; margin-bottom: 10px; }
 .thumb { width: 86px; height: 86px; object-fit: cover; border-radius: 12px; background: rgba(255,255,255,0.06); }
 .info { flex: 1; }

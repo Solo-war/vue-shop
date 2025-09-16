@@ -1,7 +1,12 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { cart, clearCart } from '../cart.js'
+
+
+onMounted(() => {
+  window.scrollTo(0, 0) // сразу скроллит в начало
+})
 
 const router = useRouter()
 const address = ref('')
@@ -136,7 +141,8 @@ async function submitOrder() {
 }
 </script>
 
-<template>
+<template >
+<div class="back">
   <div class="page">
     <div class="inner">
       <h1>Оформление заказа</h1>
@@ -180,11 +186,14 @@ async function submitOrder() {
       </div>
     </div>
   </div>
+</div>
 </template>
 
 <style scoped>
+
 .page {
-  padding: 32px 0;
+  padding: 32px;
+  padding-bottom: 1200px;
 }
 
 .inner {
@@ -208,9 +217,11 @@ async function submitOrder() {
 .suggestions li {
   padding: 6px 10px;
   cursor: pointer;
+  
+  
 }
 .suggestions li:hover {
-  background: #f0f0f0;
+background: linear-gradient(135deg, var(--brand), var(--brand-2))
 }
 
 h1 {
@@ -234,7 +245,7 @@ input {
 
 button {
   padding: 10px 18px;
-  background: #4caf50;
+  background: linear-gradient(135deg, #ef4444, #f97316);
   border: none;
   border-radius: 8px;
   font-weight: 600;
@@ -244,7 +255,7 @@ button {
 }
 
 button:hover {
-  background: #45a049;
+  background: linear-gradient(135deg, #dd3b3b, #ce5e0e)
 }
 
 .error {
