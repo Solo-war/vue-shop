@@ -281,11 +281,33 @@ export default {
 <style scoped>
 /* Keep product thumbnails responsive and bounded */
 .container h1 { font-family: inherit; font-weight: 700; }
-.product-card { display: flex; flex-direction: column; min-width: 0; }
+.product-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* тянет содержимое вверх/вниз */
+}
+
+.desc {
+  flex-grow: 1; /* описание займет оставшееся место */
+  min-height: 30px; /* фиксируем минимальную высоту */
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-2);
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto; /* прижимает блок с кнопкой вниз */
+
+}
+
 .thumb-wrapper {
   position: relative;
   /* Keep a consistent image box that adapts to width */
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 6 / 5;
   /* Fallback max/min heights for legacy browsers */
   min-height: 180px;
   max-height: 360px;

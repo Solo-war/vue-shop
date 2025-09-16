@@ -226,7 +226,7 @@ function goBack(){ router.back() }
 </template>
 
 <style scoped>
-.product{ max-width: 1100px; margin: 16px auto; }
+.p  roduct{ max-width: 1100px; margin: 16px auto; }
 .back { 
   margin-bottom: 12px; 
   background: rgba(0, 0, 0, 0.05); /* чуть заметный фон */

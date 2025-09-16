@@ -1,7 +1,13 @@
 <script setup>
+
 import { cart, removeFromCart, clearCart } from '../cart.js'
 import { computed } from 'vue'
-import { RouterLink } from 'vue-router'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '../store/auth'   // ⬅️ добавили
+
+const auth = useAuthStore()
+const router = useRouter()
+
 
 function formatPrice(v) { return Number(v).toLocaleString('ru-RU') }
 
@@ -17,6 +23,15 @@ function decreaseQty(id, size = null) {
   if (found && found.qty > 1) found.qty--
   else removeFromCart(id, size)
 }
+
+function goCheckout() {
+  if (!auth.user) {
+    router.push('/profile') // или на страницу логина
+    return
+  }
+  router.push('/checkout')
+}
+
 
 function inc(item){ increaseQty(item.id, item.size ?? null) }
 function dec(item){ decreaseQty(item.id, item.size ?? null) }
@@ -49,22 +64,30 @@ function remove(item){ removeFromCart(item.id, item.size ?? null) }
 
       <div class="total">Итого: <strong>{{ formatPrice(total) }} ₽</strong></div>
 
-      <div class="actions">
-        <RouterLink v-if="cart.length > 0" to="/checkout" class="btn btn-primary">Оформить заказ</RouterLink>
-        <button class="btn btn-danger" @click="clearCart">Очистить корзину</button>
-      </div>
+
+        <div class="actions">
+          <button
+            v-if="cart.length > 0"
+            class="btn btn-primary"
+            @click="goCheckout"
+          >
+            Оформить заказ
+          </button>
+          <button class="btn btn-danger" @click="clearCart">Очистить корзину</button>
+        </div>
+
     </div>
   </div>
   
 </template>
 
 <style scoped>
-.basket-item { display: flex; align-items: center; gap: 12px; padding: 12px; }
+.basket-item { display: flex; align-items: center; gap: 12px; padding: 12px; margin-bottom: 10px; }
 .thumb { width: 86px; height: 86px; object-fit: cover; border-radius: 12px; background: rgba(255,255,255,0.06); }
 .info { flex: 1; }
 .qty { display: inline-flex; gap: 8px; align-items: center; margin-top: 6px; }
 .qty-btn { cursor: pointer; padding: 6px 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); color: var(--text-1) }
-.actions { display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 20px; }
+.actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 20px; }
 .total { margin-top: 20px; font-size: 18px; }
 .empty { text-align: center; padding: 40px; }
 

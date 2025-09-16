@@ -132,7 +132,7 @@ a:hover { text-decoration: underline; }
   will-change: transform;
   min-width: 0; /* Allow grid/flex to shrink cards safely */
 }
-.card:hover { box-shadow: var(--shadow-lg); transform: translateY(-4px); }
+.card:hover { box-shadow: var(--shadow-lg); transform: translateX(-4px); }
 
 .chip {
   display: inline-flex;
