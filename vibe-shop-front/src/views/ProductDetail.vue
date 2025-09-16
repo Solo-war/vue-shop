@@ -227,7 +227,21 @@ function goBack(){ router.back() }
 
 <style scoped>
 .product{ max-width: 1100px; margin: 16px auto; }
-.back{ margin-bottom: 12px; background: transparent; border: 0; color: var(--text-2); cursor: pointer; }
+.back { 
+  margin-bottom: 12px; 
+  background: rgba(0, 0, 0, 0.05); /* чуть заметный фон */
+  border: 0; 
+  border-radius: 8px;
+  color: var(--text-2); 
+  cursor: pointer; 
+  padding: 6px 12px; 
+  transition: background 0.2s ease;
+}
+
+.back:hover {
+  background: rgba(0, 0, 0, 0.01); /* светлее при наведении */
+}
+
 .grid{ display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 24px; }
 .gallery{ display: flex; flex-direction: column; align-items: center; }
 /* Responsive photo window that respects image aspect ratio

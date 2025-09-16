@@ -16,7 +16,7 @@ const exp_year = ref('')
 const name = ref('')
 const result = ref(null)
 const error = ref(null)
-
+const processing = ref(false)
 const isGeneratingReceipt = ref(false)
 const receiptSecondsLeft = ref(0)
 const receiptTotalSeconds = ref(0)
@@ -74,6 +74,10 @@ async function pay() {
     return
   }
   try {
+    processing.value = true
+    error.value = null
+    result.value = null
+
     const res = await fetch('http://127.0.0.1:8000/pay-mock', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -87,6 +91,12 @@ async function pay() {
     })
     const data = await res.json()
     if (!res.ok) throw new Error(data.detail || JSON.stringify(data))
+
+    // КЛИЕНТСКАЯ задержка: от 5 до 10 секунд
+    const clientDelay = Math.floor(Math.random() * (10 - 5 + 1)) + 5
+    await new Promise(r => setTimeout(r, clientDelay * 1000))
+
+    // теперь показываем результат и чистим корзину
     result.value = data
     localStorage.removeItem('cart')
 
@@ -97,6 +107,8 @@ async function pay() {
   } catch (e) {
     console.error(e)
     error.value = e.message
+  } finally {
+    processing.value = false
   }
 }
 
@@ -205,12 +217,14 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="pay-page">
-    <div class="card">
+    <!-- форма оплаты -->
+    <div class="card" v-if="!result">
       <h1 class="title">Оплата</h1>
       <p class="order-info">
         Заказ: <strong>#{{ order_id }}</strong><br />
         Сумма: <strong>{{ amount }} ₽</strong>
       </p>
+
       <div class="order-info">
         <template v-if="deliveryAddress">
           Адрес доставки: <strong>{{ deliveryAddress }}</strong>
@@ -224,8 +238,8 @@ onBeforeUnmount(() => {
         <label>
           Номер карты
           <input v-model="card_number" maxlength="19" placeholder="0000 0000 0000 0000" />
-          <small v-if="brand !== 'unknown'" style="color:#374151;display:block;margin-top:4px;">Бренд: {{ brand.toUpperCase() }}</small>
-          <small v-if="card_number && !isCardValid" style="color:#dc2626;display:block;margin-top:4px;">Неверный номер карты</small>
+          <small v-if="brand !== 'unknown'">Бренд: {{ brand.toUpperCase() }}</small>
+          <small v-if="card_number && !isCardValid" class="error">Неверный номер карты</small>
         </label>
 
         <div class="row">
@@ -244,9 +258,19 @@ onBeforeUnmount(() => {
           <input v-model="name" placeholder="Имя Фамилия" />
         </label>
 
-        <button class="btn" @click="pay">Оплатить</button>
+        <button class="btn btn-primary" @click="pay" :disabled="processing">
+          {{ processing ? 'Обработка...' : 'Оплатить' }}
+        </button>
       </div>
-    <div v-if="result" class="result">
+
+      <!-- сообщение о проверке -->
+      <div v-if="processing" class="status-msg">
+        🔄 Проверка платежа, подождите несколько секунд...
+      </div>
+    </div>
+
+    <!-- результат -->
+    <div v-else>
       <h3 :class="result.status === 'succeeded' ? 'success' : 'error'">
         {{ result.status === 'succeeded' ? 'Оплата прошла успешно' : 'Ошибка оплаты' }}
       </h3>
@@ -257,35 +281,39 @@ onBeforeUnmount(() => {
         Ожидаемая дата доставки:
         <strong>{{ etaFromCheckout || result.delivery_time }}</strong>
       </p>
-
       <div v-if="result.status === 'succeeded'" class="receipt-block">
-        <div v-if="isGeneratingReceipt" class="receipt-progress">
-          <span>Генерация чека</span>
-          <span v-if="receiptSecondsLeft"> (~{{ receiptSecondsLeft }}с)</span>
-          <div class="bar"><div class="fill" :style="{ width: (receiptTotalSeconds ? (100 - Math.round((receiptSecondsLeft / receiptTotalSeconds) * 100)) : 0) + '%' }"></div></div>
-        </div>
-
-        <div v-else-if="receipt" class="receipt">
-          <h4>Чек оплаты</h4>
-          <div class="line"><strong>Статус:</strong> {{ receipt.status }}</div>
-          <div class="line"><strong>Оплачено:</strong> {{ receipt.paidAt }}</div>
-          <div class="line"><strong>Номер заказа:</strong> #{{ receipt.orderId }}</div>
-          <div class="line"><strong>ID транзакции:</strong> {{ receipt.transactionId }}</div>
-          <div class="line"><strong>Сумма:</strong> {{ receipt.amount }} ₽</div>
-          <div class="line"><strong>Карта:</strong> {{ receipt.cardMasked }}</div>
-          <div class="line"><strong>Имя:</strong> {{ receipt.name }}</div>
-          <div class="receipt-actions">
-            <button class="btn" @click="downloadReceiptTxt">Скачать .txt</button>
-            <button class="btn-secondary" @click="printReceipt">Печать / PDF</button>
-          </div>
+  <!-- если чек ещё генерируется -->
+      <div v-if="isGeneratingReceipt" class="receipt-progress">
+        ⏳ Генерация чека...
+        <div class="bar">
+          <div
+            class="fill"
+            :style="{ width: ((receiptTotalSeconds - receiptSecondsLeft) / receiptTotalSeconds * 100) + '%' }"
+          ></div>
         </div>
       </div>
+      <div v-else-if="receipt" class="receipt">
+    <h4>Чек об оплате</h4>
+    <div class="line">Статус: {{ receipt.status }}</div>
+    <div class="line">Оплачено: {{ receipt.paidAt }}</div>
+    <div class="line">Заказ: #{{ receipt.orderId }}</div>
+    <div class="line">ID транзакции: {{ receipt.transactionId }}</div>
+    <div class="line">Сумма: {{ receipt.amount }} ₽</div>
+    <div class="line">Карта: {{ receipt.cardMasked }}</div>
+    <div class="line">Имя: {{ receipt.name }}</div>
+
+    <!-- Кнопки -->
+    <div class="receipt-actions">
+      
+      <button class="btn-secondary" @click="printReceipt">Печать / PDF</button>
+    </div>
+  </div>
+</div>
 
       <button class="btn-secondary" @click="$router.push('/')">Назад в магазин</button>
     </div>
 
-    <div v-if="error" class="error">{{ error }}</div>
-
+    <!-- конфетти -->
     <div v-if="showConfetti" class="confetti">
       <div
         v-for="p in confettiPieces"
@@ -303,10 +331,11 @@ onBeforeUnmount(() => {
       >
         <div class="confetti-piece-inner"></div>
       </div>
+      
     </div>
   </div>
-  </div>
 </template>
+
 
 <style scoped>
 .pay-page { display: flex; justify-content: center; align-items: center; padding: 40px 20px; min-height: 10vh; }
@@ -348,7 +377,11 @@ input { width: 100%; margin-top: 4px; }
 .confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 9999; }
 .confetti-piece { position: absolute; top: -12px; left: 0; width: var(--w); height: var(--h); transform: translateY(-100vh); animation: confetti-fall var(--dur) cubic-bezier(.2,.7,.2,1) var(--delay) forwards; }
 .confetti-piece-inner { width: 100%; height: 100%; background: hsl(var(--hue), 90%, 60%); border-radius: 2px; display: block; transform-origin: center; animation: confetti-spin var(--dur) linear var(--delay) forwards; }
-
+.status-msg {
+  margin-top: 10px;
+  font-size: 14px;
+  color: var(--primary);
+}
 @keyframes confetti-fall { 0% { transform: translateY(-100vh); opacity: 0; } 10% { opacity: 1; } 100% { transform: translateY(105vh); opacity: 1; } }
 @keyframes confetti-spin { to { transform: rotate(calc(720deg * var(--spinDir))); } }
 </style>

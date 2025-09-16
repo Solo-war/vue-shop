@@ -14,7 +14,7 @@
                 <div class="head-cell">
                   <img :src="p.image" alt="" class="thumb" />
                   <div class="title">{{ p.name }}</div>
-                  <button class="btn btn-secondary small" @click="removeFromCompare(p.id)">Удалить</button>
+                  <!-- Кнопка Удалить сверху убрана -->
                 </div>
               </th>
             </tr>
@@ -28,7 +28,9 @@
             </tr>
             <tr>
               <td class="label">Описание</td>
-              <td v-for="p in compareList" :key="p.id + '-desc'" class="value desc">{{ p.description || '—' }}</td>
+              <td v-for="p in compareList" :key="p.id + '-desc'" class="value desc">
+                {{ p.description || '—' }}
+              </td>
             </tr>
             <tr>
               <td class="label">Действия</td>
@@ -45,6 +47,7 @@
     </div>
   </div>
 </template>
+
 
 <script>
 import { compareList, removeFromCompare } from '@/compare.js'

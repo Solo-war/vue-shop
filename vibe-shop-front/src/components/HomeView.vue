@@ -22,7 +22,7 @@ export default {
           const arr = Array.isArray(list) ? list.slice() : []
           const kw = [
             // RU
-            'муж', 'мужчина', 'парень', 'полный', 'рост', 'анфас', 'фронт', 'стоя', 'лиц',
+            'муж', 'мужчина', 'парень', 'полный', 'рост', 'анфас', 'фронт', 'standing', 'лиц',
             // EN
             'man', 'male', 'model', 'full', 'fullbody', 'full-body', 'full_length', 'full-length', 'front', 'standing', 'person', 'guy'
           ]
@@ -173,7 +173,32 @@ export default {
       }catch{}
     }
 
-    return { products, loading, add, formatPrice, toggleFavorite, isFavorite, toggleCompare, isCompared, filteredProducts, asset, imgFallback, gridThumb, gridImages, mainImage, pickImage, selectedImage }
+    // Функция для обрезки описания (только обрезка, без переключения)
+    const truncateDescription = (description) => {
+      const maxLength = 120;
+      if (description.length <= maxLength) return description;
+      return description.substring(0, maxLength) + '...';
+    }
+
+    return { 
+      products, 
+      loading, 
+      add, 
+      formatPrice, 
+      toggleFavorite, 
+      isFavorite, 
+      toggleCompare, 
+      isCompared, 
+      filteredProducts, 
+      asset, 
+      imgFallback, 
+      gridThumb, 
+      gridImages, 
+      mainImage, 
+      pickImage, 
+      selectedImage,
+      truncateDescription
+    }
   },
 }
 </script>
@@ -239,7 +264,11 @@ export default {
         <div class="title">
           <router-link :to="`/product/${p.slug || p.id}`">{{ p.name }}</router-link>
         </div>
-        <div class="desc">{{ p.description }}</div>
+        
+        <div class="desc">
+          {{ truncateDescription(p.description) }}
+        </div>
+        
         <div class="row">
           <div class="price">{{ formatPrice(p.price) }} ₽</div>
           <button class="btn btn-primary" @click="add(p)">В корзину</button>
@@ -247,7 +276,6 @@ export default {
       </article>
     </div>
   </div>
-  
 </template>
 
 <style scoped>
@@ -296,11 +324,69 @@ export default {
 .favorite-btn:hover { transform: scale(1.05); }
 .favorite-btn.active svg { fill: red; stroke: red; }
 
+.desc {
+  color: var(--text-2);
+  font-size: 13px;
+  min-height: 30px;
+  margin-top: 6px;
+  word-break: break-word;
+  line-height: 1.4;
+}
+
+.read-more-btn {
+  background: none;
+  border: none;
+  color: var(--primary);
+  cursor: pointer;
+  font-size: 12px;
+  margin-left: 4px;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.read-more-btn:hover {
+  opacity: 0.8;
+}
+
+/* Mobile tweaks */
+@media (max-width: 640px) {
+  .desc {
+    font-size: 12px;
+  }
+  
+  .read-more-btn {
+    font-size: 11px;
+  }
+}
+
 /* Mobile tweaks for the catalog cards */
 @media (max-width: 640px) {
-  .thumb-wrapper { min-height: 160px; }
-  .thumb-mini { width: 38px; height: 38px; }
-  .row { flex-direction: column; align-items: stretch; gap: 10px; }
-  .compare-btn, .favorite-btn { padding: 4px; border-radius: 10px; }
+  .thumb-wrapper { 
+    min-height: 160px; 
+  }
+  .thumb-mini { 
+    width: 38px; 
+    height: 38px; 
+  }
+  .row { 
+    flex-direction: column; 
+    align-items: stretch; 
+    gap: 10px; 
+  }
+  .compare-btn, 
+  .favorite-btn { 
+    padding: 4px; 
+    border-radius: 10px; 
+  }
+
+  /* главное — перестроить сетку */
+  .grid-premium {
+    display: grid;
+    grid-template-columns: 1fr; /* одна колонка */
+    gap: 16px; /* отступы между товарами */
+  }
 }
+
+
+
 </style>
